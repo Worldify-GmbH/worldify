@@ -1,3 +1,362 @@
+/**
+ * Missing Documents
+ * 
+ * 
+ *
+ * 
+ */
+
+
+/**
+ * Asynchronously fetches the missing documents based on the provided submodule ID.
+ * 
+ * How it works:
+ * 1. Retrieves the submodule ID from the DOM using a custom attribute 'w-el'.
+ * 2. Gets the 'wized_token' cookie and constructs the Authorization token.
+ * 3. Builds the URL for the request, appending the submodule ID as a query parameter.
+ * 4. Sends a GET request to the server to fetch the missing documents.
+ * 
+ * @async
+ * @function
+ * @returns {Object|null} - Returns the missing documents in JSON format if successful, or null otherwise.
+ *                          Throws an error if there's an issue with the fetch request.
+ * 
+ * @throws {Error} - If there's a problem during the fetch request.
+ * 
+ * Pre-requisites:
+ * - 'baseUrl' must be globally defined and should contain the base path of the API.
+ * - A DOM element with attribute 'w-el' set to 'submodule_id' must be present in the HTML.
+ * - The 'getCookie' function should be defined elsewhere to retrieve the 'wized_token'.
+ */
+async function getMissingDocuments() {
+  const submodule_id = document.querySelector('[w-el="submodule_id"]').value;
+  const wized_token = getCookie("wized_token");
+  const token = "Bearer " + wized_token;
+
+  const baseURL = baseUrl + "/documents/module/missingDocuments";
+
+  // Create a new URL object
+  const url = new URL(baseURL);
+
+  // Define the query parameters
+  const params = {
+    submodule_id: submodule_id,
+  };
+
+  // Append the query parameters to the URL
+  Object.keys(params).forEach((key) =>
+    url.searchParams.append(key, params[key])
+  );
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: token,
+      },
+    });
+
+    if (response.ok) {
+      const jsonResponse = await response.json();
+      return jsonResponse;
+    } else {
+      const jsonResponse = await response.json();
+      return null;
+    }
+  } catch (error) {
+    console.error("Error while getting missing documents:", error);
+  }
+}
+
+/**
+ * Event handler function that manages the file upload process when an upload button is clicked.
+ *
+ * The function is responsible for:
+ * 1. Detecting if the clicked element is related to the upload process.
+ * 2. Gathering necessary information about the file, including its title, document ID, and submodule ID.
+ * 3. Uploading the file using a POST request.
+ * 4. Providing feedback to the user after a successful or unsuccessful upload.
+ * 5. Updating the user interface post-upload.
+ *
+ * @async
+ * @function
+ * @param {Event} event - The event object, typically originating from a button click.
+ *
+ * Pre-requisites:
+ * - The event target must be within an element with the attribute 'w-el' set to 'document_missing_submitButton'.
+ * - There should be specific DOM structure and attributes present to provide the necessary data.
+ * - 'baseUrl' must be globally defined, pointing to the base path of the API.
+ * - The 'getCookie' function should be defined elsewhere to retrieve the 'wized_token' value.
+ *
+ * @throws {Error} - Logs an error message if there's a problem during the file upload.
+ */
+async function handleUpload(event) {
+  // Ensure the clicked element is related to the upload button
+  if (
+    event.target.parentNode.matches('[w-el="document_missing_submitButton"]')
+  ) {
+    const button = event.target;
+
+    // Get the closest parent card and its related input and title elements
+    const card = button.closest('[w-el="document_missing_listitem"]');
+    const fileInput = card.querySelector(
+      'input[type="file"][w-el="document_missing_file"]'
+    );
+    const file = fileInput.files[0];
+    const documentTitle = card.querySelector(
+      '[w-el="document_missing_fileName"]'
+    ).textContent;
+
+    // Extract document and submodule IDs
+    const documentId = parseInt(card.id);
+    const submoduleId = parseInt(
+      document.querySelector('[w-el="submodule_id"]').value
+    );
+
+    // Construct the Authorization token
+    const wized_token = getCookie("wized_token");
+    const token = "Bearer " + wized_token;
+
+    // Check if a file has been selected for upload
+    if (!file) {
+      alert("Please select a file first.");
+      return;
+    }
+
+    // Create formData and append relevant information
+    const formData = new FormData();
+    formData.append("document_title", documentTitle);
+    formData.append("document_id", documentId);
+    formData.append("submodules_id", submoduleId);
+    formData.append("file", file);
+
+    // Try uploading the document
+    try {
+      const response = await fetch(baseUrl + "/documents", {
+        method: "POST",
+        headers: {
+          Authorization: token,
+        },
+        body: formData,
+      });
+
+      // Handle response based on success or failure
+      if (response.ok) {
+        const jsonResponse = await response.json();
+
+        // Clear the card and display a success message
+        while (card.firstChild) {
+          card.removeChild(card.firstChild);
+        }
+        const successWrapper = document.createElement("div");
+        successWrapper.classList.add("upload-item_component");
+        const successMessage = document.createElement("p");
+        successMessage.textContent = "Upload successful!";
+        successWrapper.appendChild(successMessage);
+        card.appendChild(successWrapper);
+
+        // After a delay, update the UI to reflect the successful upload
+        setTimeout(() => {
+          card.remove();
+          renderMissingDocuments();
+          renderUploadedDocuments();
+        }, 3000);
+      } else {
+        console.error("Upload failed:", response.statusText);
+        alert("Upload failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      alert("An error occurred. Please try again.");
+    }
+  }
+}
+
+
+/**
+ * Appends an HTML structure representing a missing file item to a given parent element.
+ *
+ * @param {Object} doc - An object containing the document metadata. It should have an 'id' and 'document_title' property.
+ * @param {HTMLElement} parentElement - The parent DOM element to which the constructed HTML will be appended.
+ */
+function missingFileItem(doc, parentElement) {
+  // SVG markup for the document icon
+  const svgContent = `
+        <svg width="24" height="31" viewBox="0 0 24 31" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5.9625 24.125H18.0375V21.875H5.9625V24.125ZM5.9625 17.75H18.0375V15.5H5.9625V17.75ZM2.25 30.5C1.65 30.5 1.125 30.275 0.675 29.825C0.225 29.375 0 28.85 0 28.25V2.75C0 2.15 0.225 1.625 0.675 1.175C1.125 0.725 1.65 0.5 2.25 0.5H15.7875L24 8.7125V28.25C24 28.85 23.775 29.375 23.325 29.825C22.875 30.275 22.35 30.5 21.75 30.5H2.25ZM14.6625 9.725H21.75L14.6625 2.75V9.725Z" fill="currentColor"></path>
+        </svg>
+    `;
+
+  // Create the main HTML content using template literals.
+  const html = `
+        <div w-el="document_missing_listitem" id="${doc.id}" class="card is-no-margin">
+            <div w-el="document_missing_itemComponent" class="upload-item_component">
+                <div class="upload-item_header">
+                    <div class="icon-embed-medium hide-mobile-landscape w-embed">
+                        ${svgContent}
+                    </div>
+                    <div w-el="document_missing_fileName" id="w-node-bb0ca9e4-6a1b-f92d-7785-b8698d5d14a4-3037c211" class="text-size-small">${doc.document_title}</div>
+                    <div id="w-node-c5d6a9d2-e381-2e0b-4771-6b07f89a7db0-3037c211" class="upload-item_header_file-upload">
+                        <div class="module-upload_file-upload w-embed">
+                            <label w-el="document_missing_fileLabel" class="button is-secondary" for="document_${doc.id}">Choose document to upload (image/pdf)
+                                <input id="document_${doc.id}" class="input_files" type="file" accept="image/*,.pdf" w-el="document_missing_file" />
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="upload-item_meta hide">
+                    <div w-el="document_missing_documentId">document_id</div>
+                </div>
+                <div w-el="document_missing_previewFileWrapper" class="upload-item_preview-file hide">
+                    <div w-el="document_missing_previewFile" class="upload-item_preview_document-wrapper"></div>
+                    <div w-el="document_missing_previewText" class="upload-item_preview_text-wrapper">
+                        <div>No file currently selected for upload.</div>
+                        <div>File name:&nbsp;<span>file_name</span>, file size:&nbsp;<span>file_size</span></div>
+                    </div>
+                    <div class="button-group">
+                        <a w-el="document_missing_submitButton" href="#" class="button w-inline-block">
+                            <div>Submit</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+  parentElement.insertAdjacentHTML("beforeend", html);
+}
+
+/**
+ * Asynchronously fetches and renders the list of missing documents on the page.
+ *
+ * This function works by:
+ * 1. Calling the `getMissingDocuments` function to fetch the list of missing documents.
+ * 2. Clearing any existing child elements in the target parent element.
+ * 3. Iterating through the fetched documents and rendering each of them using the `missingFileItem` function.
+ *
+ * @async
+ * @function
+ * 
+ * Pre-requisites:
+ * - The 'getMissingDocuments' function should be defined and working correctly.
+ * - The 'missingFileItem' function should be defined to handle the rendering of each missing document.
+ * - A parent element with the attribute 'w-el' set to 'document_missing_list' should exist in the DOM.
+ *
+ * @throws {Error} - Logs an error message if there's a problem during rendering.
+ */
+async function renderMissingDocuments() {
+  try {
+
+    // Select the parent element where the missing documents should be rendered
+    const parentElement = document.querySelector(
+      '[w-el="document_missing_list"]'
+    );
+
+    // Clear any existing child elements of the parent element
+    if (parentElement.firstChild) {
+      while (parentElement.firstChild) {
+        parentElement.removeChild(parentElement.firstChild);
+      }
+    }
+
+    
+
+    // Fetch the list of missing documents
+    const docs = await getMissingDocuments();
+    
+    if (docs.length === 0) {
+      const para = document.createElement('p');
+      para.textContent = "Great! You have uploaded all documents!"
+      parentElement.appendChild(para);
+    } else {
+      // Render each missing document in the parent element
+      docs.forEach((doc) => {
+        missingFileItem(doc, parentElement);
+      });
+    }
+
+  } catch (error) {
+    console.error("Error while rendering missing documents:", error);
+  }
+}
+
+
+/**
+ * Uploaded Documents
+ * 
+ * 
+ *
+ * 
+ */
+
+/**
+ * Asynchronously fetches the documents uploaded for a specific submodule ID.
+ * 
+ * How it works:
+ * 1. Retrieves the submodule ID from the DOM using a custom attribute 'w-el'.
+ * 2. Obtains the 'wized_token' cookie and constructs the Authorization token.
+ * 3. Constructs the request URL, appending the submodule ID as a query parameter.
+ * 4. Sends a GET request to fetch the uploaded documents for the given submodule ID.
+ * 
+ * @async
+ * @function
+ * @returns {Object|null} - Returns the uploaded documents in JSON format if the request is successful, 
+ *                          or null if the request results in an error status.
+ *                          If there's an issue during the fetch request, it logs an error message and does not return.
+ * 
+ * Pre-requisites:
+ * - 'baseUrl' must be globally defined and should point to the base path of the API.
+ * - A DOM element with attribute 'w-el' set to 'submodule_id' should be present in the HTML.
+ * - The 'getCookie' function should be defined elsewhere to retrieve the 'wized_token' value.
+ * 
+ * @throws {Error} - Logs an error message if there's a problem during the fetch request.
+ */
+async function getUploadedDocuments() {
+    const submodule_id = document.querySelector('[w-el="submodule_id"]').value;
+    const wized_token = getCookie("wized_token");
+    const token = "Bearer " + wized_token;
+  
+    const baseURL = baseUrl + "/documents/module/uploadedDocuments";
+  
+    // Create a new URL object
+    const url = new URL(baseURL);
+  
+    // Define the query parameters
+    const params = {
+      submodule_id: submodule_id,
+    };
+  
+    // Append the query parameters to the URL
+    Object.keys(params).forEach((key) =>
+      url.searchParams.append(key, params[key])
+    );
+  
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: token,
+        },
+      });
+  
+      if (response.ok) {
+        const jsonResponse = await response.json();
+        return jsonResponse;
+      } else {
+        const jsonResponse = await response.json();
+        return null;
+      }
+    } catch (error) {
+      console.error("Error while getting uploaded documents:", error);
+    }
+  }
+
+
+/**
+ * Event handler function for clicks on the view, download and delete buttons
+ * This function is triggered when a user clicks on the buttons and then selects the correct operation
+ * @param {Event} event - The change event object.
+ */
 async function handleUploadedDocuments(event) {
   const parentLink = event.target.closest("a");
 
@@ -54,9 +413,7 @@ async function handleUploadedDocuments(event) {
     );
 
     //Fetch all needed information
-    const documentId = card.querySelector(
-      '[w-el="document_uploaded_documentId"]'
-    ).textContent;
+    const documentId = card.id;
     const wized_token = getCookie("wized_token");
     const token = "Bearer " + wized_token;
 
@@ -89,169 +446,8 @@ async function handleUploadedDocuments(event) {
         // Wait for 5 seconds, then remove the card and reload the site
         setTimeout(() => {
           card.remove();
-          // Locate the button with the custom attribute and display it
-          const reloadButton = document.querySelector('[w-el="reloadButton"]');
-          reloadButton.style.display = "block"; // Assuming it was hidden before
-        }, 5000);
-      } else {
-        console.error("Upload failed:", response.statusText);
-        alert("Upload failed. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error uploading document:", error);
-      alert("An error occurred. Please try again.");
-    }
-  }
-}
-
-async function getMissingDocuments() {
-  const submodule_id = document.querySelector('[w-el="submodule_id"]').value;
-  const wized_token = getCookie("wized_token");
-  const token = "Bearer " + wized_token;
-
-  const baseURL = baseUrl + "/documents/module/missingDocuments";
-
-  // Create a new URL object
-  const url = new URL(baseURL);
-
-  // Define the query parameters
-  const params = {
-    submodule_id: submodule_id,
-  };
-
-  // Append the query parameters to the URL
-  Object.keys(params).forEach((key) =>
-    url.searchParams.append(key, params[key])
-  );
-
-  try {
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: token,
-      },
-    });
-
-    if (response.ok) {
-      const jsonResponse = await response.json();
-      return jsonResponse;
-    } else {
-      const jsonResponse = await response.json();
-      return null;
-    }
-  } catch (error) {
-    console.error("Error while getting missing documents:", error);
-  }
-}
-
-async function getUploadedDocuments() {
-    const submodule_id = document.querySelector('[w-el="submodule_id"]').value;
-    const wized_token = getCookie("wized_token");
-    const token = "Bearer " + wized_token;
-  
-    const baseURL = baseUrl + "/documents/module/uploadedDocuments";
-  
-    // Create a new URL object
-    const url = new URL(baseURL);
-  
-    // Define the query parameters
-    const params = {
-      submodule_id: submodule_id,
-    };
-  
-    // Append the query parameters to the URL
-    Object.keys(params).forEach((key) =>
-      url.searchParams.append(key, params[key])
-    );
-  
-    try {
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          Authorization: token,
-        },
-      });
-  
-      if (response.ok) {
-        const jsonResponse = await response.json();
-        return jsonResponse;
-      } else {
-        const jsonResponse = await response.json();
-        return null;
-      }
-    } catch (error) {
-      console.error("Error while getting uploaded documents:", error);
-    }
-  }
-
-// The event handler function
-async function handleUpload(event) {
-  // Check if the clicked element is an upload button
-  if (
-    event.target.parentNode.matches('[w-el="document_missing_submitButton"]')
-  ) {
-    const button = event.target;
-
-    const card = button.closest('[w-el="document_missing_listitem"]');
-    const fileInput = card.querySelector(
-      'input[type="file"][w-el="document_missing_file"]'
-    );
-    const file = fileInput.files[0];
-    const documentTitle = card.querySelector(
-      '[w-el="document_missing_fileName"]'
-    ).textContent;
-    console.log(card.id);
-    const documentId = parseInt(card.id); //parseInt(card.querySelector('[w-el="document_missing_documentId"]').textContent);
-    const submoduleId = parseInt(
-      document.querySelector('[w-el="submodule_id"]').value
-    );
-    const wized_token = getCookie("wized_token");
-    const token = "Bearer " + wized_token;
-
-    if (!file) {
-      alert("Please select a file first.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("document_title", documentTitle);
-    formData.append("document_id", documentId);
-    formData.append("submodules_id", submoduleId);
-    formData.append("file", file);
-
-    try {
-      const response = await fetch(baseUrl + "/documents", {
-        method: "POST",
-        headers: {
-          Authorization: token,
-        },
-        body: formData,
-      });
-
-      if (response.ok) {
-        const jsonResponse = await response.json();
-
-        // Remove all child elements from the card
-        while (card.firstChild) {
-          card.removeChild(card.firstChild);
-        }
-
-        // Create and display a success message within the card
-        const successWrapper = document.createElement("div");
-        successWrapper.classList.add("upload-item_component");
-        const successMessage = document.createElement("p");
-        successMessage.textContent = "Upload successful!";
-        successWrapper.appendChild(successMessage);
-        card.appendChild(successWrapper);
-
-        // Wait for 5 seconds, then remove the card and reload the site
-        setTimeout(() => {
-          card.remove();
-          // Locate the button with the custom attribute and display it
           renderMissingDocuments();
           renderUploadedDocuments();
-          const reloadButton = document.querySelector('[w-el="reloadButton"]');
-          reloadButton.style.display = "block"; // Assuming it was hidden before
         }, 3000);
       } else {
         console.error("Upload failed:", response.statusText);
@@ -356,88 +552,12 @@ async function handleFileInputChange(event) {
   }
 }
 
-// https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types
-const fileTypes = [
-  "image/apng",
-  "image/bmp",
-  "image/gif",
-  "image/jpeg",
-  "image/pjpeg",
-  "image/png",
-  "image/svg+xml",
-  "image/tiff",
-  "image/webp",
-  "image/x-icon",
-  "application/pdf",
-];
-
-function validFileType(file) {
-  return fileTypes.includes(file.type);
-}
-
-function returnFileSize(number) {
-  if (number < 1024) {
-    return `${number} bytes`;
-  } else if (number >= 1024 && number < 1048576) {
-    return `${(number / 1024).toFixed(1)} KB`;
-  } else if (number >= 1048576) {
-    return `${(number / 1048576).toFixed(1)} MB`;
-  }
-}
-
 /**
- * Appends an HTML structure representing a missing file item to a given parent element.
+ * Appends an HTML structure representing a uploaded file item to a given parent element.
  *
  * @param {Object} doc - An object containing the document metadata. It should have an 'id' and 'document_title' property.
  * @param {HTMLElement} parentElement - The parent DOM element to which the constructed HTML will be appended.
  */
-function missingFileItem(doc, parentElement) {
-  // SVG markup for the document icon
-  const svgContent = `
-        <svg width="24" height="31" viewBox="0 0 24 31" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5.9625 24.125H18.0375V21.875H5.9625V24.125ZM5.9625 17.75H18.0375V15.5H5.9625V17.75ZM2.25 30.5C1.65 30.5 1.125 30.275 0.675 29.825C0.225 29.375 0 28.85 0 28.25V2.75C0 2.15 0.225 1.625 0.675 1.175C1.125 0.725 1.65 0.5 2.25 0.5H15.7875L24 8.7125V28.25C24 28.85 23.775 29.375 23.325 29.825C22.875 30.275 22.35 30.5 21.75 30.5H2.25ZM14.6625 9.725H21.75L14.6625 2.75V9.725Z" fill="currentColor"></path>
-        </svg>
-    `;
-
-  // Create the main HTML content using template literals.
-  const html = `
-        <div w-el="document_missing_listitem" id="${doc.id}" class="card is-no-margin">
-            <div w-el="document_missing_itemComponent" class="upload-item_component">
-                <div class="upload-item_header">
-                    <div class="icon-embed-medium hide-mobile-landscape w-embed">
-                        ${svgContent}
-                    </div>
-                    <div w-el="document_missing_fileName" id="w-node-bb0ca9e4-6a1b-f92d-7785-b8698d5d14a4-3037c211" class="text-size-small">${doc.document_title}</div>
-                    <div id="w-node-c5d6a9d2-e381-2e0b-4771-6b07f89a7db0-3037c211" class="upload-item_header_file-upload">
-                        <div class="module-upload_file-upload w-embed">
-                            <label w-el="document_missing_fileLabel" class="button is-secondary" for="document_${doc.id}">Choose document to upload (image/pdf)
-                                <input id="document_${doc.id}" class="input_files" type="file" accept="image/*,.pdf" w-el="document_missing_file" />
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                <div class="upload-item_meta hide">
-                    <div w-el="document_missing_documentId">document_id</div>
-                </div>
-                <div w-el="document_missing_previewFileWrapper" class="upload-item_preview-file hide">
-                    <div w-el="document_missing_previewFile" class="upload-item_preview_document-wrapper"></div>
-                    <div w-el="document_missing_previewText" class="upload-item_preview_text-wrapper">
-                        <div>No file currently selected for upload.</div>
-                        <div>File name:&nbsp;<span>file_name</span>, file size:&nbsp;<span>file_size</span></div>
-                    </div>
-                    <div class="button-group">
-                        <a w-el="document_missing_submitButton" href="#" class="button w-inline-block">
-                            <div>Submit</div>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-  parentElement.insertAdjacentHTML("beforeend", html);
-}
-
 function uploadedFileItem(doc, parentElement) {
     const svgContentDoc = 
         `<svg width="24" height="31" viewBox="0 0 24 31" xmlns="http://www.w3.org/2000/svg">
@@ -601,42 +721,56 @@ function uploadedFileItem(doc, parentElement) {
   parentElement.insertAdjacentHTML("beforeend", html);
 }
 
-async function renderMissingDocuments() {
-  try {
-    const docs = await getMissingDocuments();
-    const parentElement = document.querySelector(
-      '[w-el="document_missing_list"]'
-    );
-    if (parentElement.firstChild) {
-      while (parentElement.firstChild) {
-        parentElement.removeChild(parentElement.firstChild);
-      }
-    }
-
-    docs.forEach((doc) => {
-      missingFileItem(doc, parentElement);
-    });
-  } catch (error) {
-    console.error("Error while rendering missing documents:", error);
-  }
-}
-
+/**
+ * Asynchronously fetches and renders the list of uploaded documents on the page.
+ *
+ * The function achieves this by:
+ * 1. Invoking the `getUploadedDocuments` function to fetch the list of uploaded documents.
+ * 2. Clearing any pre-existing child elements in the designated parent element.
+ * 3. Iterating over the fetched documents and using the `uploadedFileItem` function to render each one.
+ *
+ * @async
+ * @function
+ * 
+ * Pre-requisites:
+ * - The 'getUploadedDocuments' function should be defined and working correctly.
+ * - The 'uploadedFileItem' function should be present to manage the rendering of each uploaded document.
+ * - A parent element with the attribute 'w-el' set to 'document_uploaded_list' should exist in the DOM.
+ *
+ * @throws {Error} - Logs an error message if there's an issue during rendering.
+ */
 async function renderUploadedDocuments() {
-    try {
-      const docs = await getUploadedDocuments();
-      const parentElement = document.querySelector(
-        '[w-el="document_uploaded_list"]'
-      );
+  try {
+
+    // Identify the parent element where the uploaded documents should be rendered
+    const parentElement = document.querySelector(
+      '[w-el="document_uploaded_list"]'
+    );
+
+      // Remove any existing child elements from the parent element
       if (parentElement.firstChild) {
         while (parentElement.firstChild) {
-          parentElement.removeChild(parentElement.firstChild);
+            parentElement.removeChild(parentElement.firstChild);
         }
       }
-  
-      docs.forEach((doc) => {
-        uploadedFileItem(doc, parentElement);
-      });
-    } catch (error) {
-      console.error("Error while rendering missing documents:", error);
-    }
+
+      
+
+      // Fetch the list of uploaded documents
+      const docs = await getUploadedDocuments();
+
+      if (docs.length === 0) {
+        const para = document.createElement('p');
+        para.textContent = "No documents uploaded yet."
+        parentElement.appendChild(para);
+
+      } else {
+        // Render each uploaded document within the parent element
+        docs.forEach((doc) => {
+          uploadedFileItem(doc, parentElement);
+        });
+      }
+  } catch (error) {
+      console.error("Error while rendering uploaded documents:", error);
   }
+}
