@@ -43,14 +43,3 @@ function toSafeFileName(text) {
     // Replace spaces with underscores, then convert to lowercase
     return text.replace(/[^a-z0-9\s]/gi, '').replace(/\s+/g, '_').toLowerCase();
 }
-
-
-const user = await getUser();
-
-if (user.id){
-    const form_id = 'cVhSjVZs';
-    const hiddenParams = {
-        'user_id': parseInt(user.id),
-    }
-    renderTypeform(form_id, hiddenParams);
-}
