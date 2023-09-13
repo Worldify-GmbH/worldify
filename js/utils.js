@@ -57,18 +57,60 @@ const fileTypes = [
     "image/webp",
     "image/x-icon",
     "application/pdf",
-  ];
+];
 
-  function validFileType(file) {
+function validFileType(file) {
     return fileTypes.includes(file.type);
-  }
+}
 
-  function returnFileSize(number) {
+function returnFileSize(number) {
     if (number < 1024) {
-      return `${number} bytes`;
+        return `${number} bytes`;
     } else if (number >= 1024 && number < 1048576) {
-      return `${(number / 1024).toFixed(1)} KB`;
+        return `${(number / 1024).toFixed(1)} KB`;
     } else if (number >= 1048576) {
-      return `${(number / 1048576).toFixed(1)} MB`;
+        return `${(number / 1048576).toFixed(1)} MB`;
     }
-  }
+}
+
+// Utility function to fetch a file as a blob
+async function fetchFile(url) {
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+    return response.blob();
+}
+
+// Main function to download files from URLs as a ZIP
+async function downloadFilesAsZip(data, zipName = 'download.zip') {
+    const zip = new JSZip();
+
+    // Use Promise.all to fetch all the files in parallel
+    const fileBlobs = await Promise.all(data.map(item => fetchFile(item.file.url)));
+
+    // Add each file to the ZIP
+    data.forEach((item, index) => {
+        const filename = toSafeFileName(item.document_title) + '.' + item.file.mime.split('/')[1];  // e.g. "Passport Bio data page.png"
+        zip.file(filename, fileBlobs[index]);
+    });
+
+    // Generate ZIP and trigger download
+    const content = await zip.generateAsync({type: "blob"});
+    saveAs(content, zipName);
+}
+
+async function downloadAllFilesSubmodule(){
+    const files = await getUploadedDocuments();
+    const submodule_name = toSafeFileName(files[0]._submodules[0].title) + ".zip";
+    downloadFilesAsZip(files,zipName=submodule_name);
+}
+
+function downloadFileFromUrl(url, filename) {
+    fetchFile(url)
+        .then(blob => {
+            saveAs(blob, filename);
+        })
+        .catch(error => console.error("Image download failed:", error));
+}
+

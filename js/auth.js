@@ -1,3 +1,4 @@
+/*
 // The event handler function
 async function getUser() {
     
@@ -26,6 +27,8 @@ async function getUser() {
         return null; // Return null or any other value to indicate an error
     }
 }
+*/
+
 
 async function sendVerificationMail (email) {
 
@@ -88,9 +91,9 @@ async function magicLogin () {
 
             setCookie(token);
 
-            const user = await getUser();
+            await checkAuthentication();
 
-            firstname.textContent = user.firstname;
+            firstname.textContent = currentUser.firstname;
 
             successMessage.classList.remove('hide');
 
@@ -102,7 +105,7 @@ async function magicLogin () {
             const email = jsonResponse.payload;
 
             if (email !== undefined && email !== ""){
-                console.log(email);
+                //console.log(email);
                 resendButton.addEventListener('click', function () {
                     sendVerificationMail(email);
                 });
@@ -116,3 +119,132 @@ async function magicLogin () {
         console.error('Error with magic login:', error);
     }
 }
+
+async function resendVerificationMail () {
+    const verifiedComponent = document.querySelector('[w-el="resendEmail_verifiedComponent"]');
+    const notVerifiedComponent = document.querySelector('[w-el="resendEmail_notVerifiedComponent"]');
+    const firstname = document.querySelectorAll('[w-el="resendEmail_firstname"]');
+    const resendButton = document.querySelector('[w-el="resendEmail_button"]');
+
+    const wized_token = getCookie("wized_token");
+    const token = 'Bearer ' + wized_token;
+
+    const isAuthenticated = await verifyToken(token);
+
+    if (isAuthenticated) {
+
+        firstname.forEach(name => {
+            name.textContent = currentUser.firstname;
+        });
+
+        if (!currentUser.is_verified) {
+
+            resendButton.addEventListener('click', function () {
+                sendVerificationMail(currentUser.email);
+            });
+
+            notVerifiedComponent.classList.remove('hide');
+
+        } else {
+
+            verifiedComponent.classList.remove('hide');
+
+        }
+        
+    }
+
+}
+
+// Global variable to store the current user's details after successful token verification.
+let currentUser = null;
+
+/**
+ * Verifies the provided token by making a request to the authentication endpoint.
+ * If the token is valid and the response contains user details, it sets the global `currentUser` variable.
+ * 
+ * @param {string} token - The authentication token to verify.
+ * @returns {boolean} - Returns `true` if the token is verified successfully, otherwise returns `false`.
+ */
+async function verifyToken(token) {
+    
+    try {
+        // Make a GET request to the authentication endpoint with the token in the headers.
+        const response = await fetch(authUrl + '/auth/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': token
+            }
+        });
+        
+        // Parse the response to JSON.
+        const data = await response.json();
+
+        // Check if the response status indicates success (e.g., 200 OK).
+        if (response.ok) {
+            // If the token is authenticated and user details are provided in the response...
+            if (data.id) {
+
+                // Store the user details in the global variable.
+                // Assuming the user details are stored in the "user" key in the returned data.
+                currentUser = data; 
+                return true;
+
+            } else {
+                // If the token is not authenticated, reset the user details to null.
+                currentUser = null;
+                return false;
+            }
+        } else {
+            // Log an error message if the token verification failed. 
+            // Use the provided error message from the response or a default "Unknown error" message.
+            console.error('Token verification failed:', data.message || 'Unknown error');
+            return false;
+        }
+    } catch (error) {
+        // Log any errors that occurred during the token verification process.
+        console.error('Error verifying token:', error);
+        return false;
+    }
+}
+
+async function checkAuthentication() {
+    
+    const wized_token = getCookie("wized_token");
+    const token = 'Bearer ' + wized_token;
+    
+    if (!token) {
+        redirectToLogin();
+    } else {
+        const isAuthenticated = await verifyToken(token);
+        if (!isAuthenticated) {
+            redirectToLogin();
+        } else {
+            if (!currentUser.is_verified) {
+                redirectToEmailVerification();
+            }
+
+            else {
+                //do nothing, user was successfully authenticated and user is stored in currentUser
+            }
+        }
+    }
+}
+
+function redirectToLogin() {
+    window.location.href = domainUrl + '/account/login';
+}
+
+function redirectToEmailVerification() {
+    window.location.href = domainUrl + '/account/send-email-verification';
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const path = window.location.pathname;
+
+    if (path.startsWith('/account/send-email-verification')){
+        resendVerificationMail();
+    }
+    if (path.startsWith('/app/')) {
+        checkAuthentication();
+    }
+});

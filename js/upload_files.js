@@ -376,6 +376,16 @@ async function handleUploadedDocuments(event) {
     }
   }
 
+  // Download Button: click triggers delete pop-up to open
+  else if (parentLink.matches('[w-el="document_uploaded_download"]')) {
+    const card = parentLink.closest('[w-el="document_uploaded_listitem"]');
+    const documentTitle = card.querySelector('[w-el="document_uploaded_fileName"]').textContent;
+    const attachmentUrl = parentLink.getAttribute('attachment');
+    console.log(documentTitle,attachmentUrl)
+    const filename = toSafeFileName(documentTitle) + '.' + attachmentUrl.split('.').pop();  // e.g. "application_form_videx_or_paper.png"
+    downloadFileFromUrl(attachmentUrl, filename);
+  }
+
   // Delete Button: click triggers delete pop-up to open
   else if (parentLink.matches('[w-el="document_uploaded_delete"]')) {
     const card = parentLink.closest('[w-el="document_uploaded_listitem"]');
@@ -673,9 +683,9 @@ function uploadedFileItem(doc, parentElement) {
               </div></a
           ><a
             w-el="document_uploaded_download"
-            href=${doc.file.url}
+            href="#"
+            attachment=${doc.file.url}
             class="file-item_button w-inline-block"
-            download
             ><div
               id="w-node-e272a60c-fcec-14eb-17c5-7d7442abc98d-3037c211"
               class="file-item_button-image w-embed"
@@ -764,11 +774,17 @@ async function renderUploadedDocuments() {
         para.textContent = "No documents uploaded yet."
         parentElement.appendChild(para);
 
+        const downloadAllButton = document.querySelector('[w-el="document_uploaded_downloadAll"]')
+        downloadAllButton.classList.add('hide');
+
       } else {
         // Render each uploaded document within the parent element
         docs.forEach((doc) => {
           uploadedFileItem(doc, parentElement);
         });
+
+        const downloadAllButton = document.querySelector('[w-el="document_uploaded_downloadAll"]')
+        downloadAllButton.classList.remove('hide');
       }
   } catch (error) {
       console.error("Error while rendering uploaded documents:", error);
