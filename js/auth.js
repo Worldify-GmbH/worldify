@@ -207,6 +207,69 @@ async function verifyToken(token) {
     }
 }
 
+async function loginUser() {
+    const email = document.querySelector('[w-el="login_email"]').value;
+    const password = document.querySelector('[w-el="login_password"]').value;
+    const buttonLoader = document.querySelector('[w-el="button_loader"]');
+    const errorWrapper = document.querySelector('[w-el="login_error"]');
+
+    const formData = new FormData();
+
+    formData.append('email',email);
+    formData.append('password',password);
+
+    try {
+
+        buttonLoader.classList.remove('hide');
+        // Send a POST request to your authentication endpoint
+        const response = await fetch(authUrl+"/auth/login", {
+            method: "POST",
+            headers: {},
+            body: formData
+        });
+
+        // Parse the response
+        const data = await response.json();
+
+        buttonLoader.classList.add('hide');
+
+        // Check the response
+        if (response.ok) {
+            // Successful login
+            setCookie(data);
+            redirectToDashboard();
+        } else {
+
+            if (errorWrapper.hasChildNodes) {
+                while (errorWrapper.firstChild) {
+                    errorWrapper.removeChild(errorWrapper.firstChild);
+                }
+            }
+            const para = document.createElement('p');
+            para.classList.add('error-message-text');
+
+            console.log(response, data);
+
+            if (data.message === "No Account for this Email.") {
+                para.textContent = data.message;
+
+            } else if (data.message === "Invalid Credentials.") {
+                para.textContent = data.message;
+            } else {
+                para.textContent = "Something went wrong... Please try again in a few minutes. If the error persists please contact us: hello@getworldify.com."
+            }
+
+            errorWrapper.appendChild(para);
+            errorWrapper.classList.remove('hide');
+            // Display an error message
+            console.error("Login failed:", data.message || "Unknown error");
+        }
+    } catch (error) {
+        console.error("Error during login:", error);
+    }
+}
+
+
 async function checkAuthentication() {
     
     const wized_token = getCookie("wized_token");
@@ -236,6 +299,10 @@ function redirectToLogin() {
 
 function redirectToEmailVerification() {
     window.location.href = domainUrl + '/account/send-email-verification';
+}
+
+function redirectToDashboard () {
+    window.location.href = domainUrl + '/app/dashboard';
 }
 
 document.addEventListener("DOMContentLoaded", function() {
