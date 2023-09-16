@@ -1,24 +1,13 @@
-function getQueryParam(paramName) {
+export function getQueryParam(paramName) {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(paramName);
 }
 
-function getCookie(name) {
-    const value = "; " + document.cookie;
-    const parts = value.split("; " + name + "=");
-    if (parts.length === 2) return parts.pop().split(";").shift();
-    return null; // or undefined, depending on your needs
+export function reloadPage() {
+    location.reload();
 }
 
-function setCookie(value) {
-    document.cookie = "wized_token=" + value + ";path=/";
-}
-
-function reloadPage() {
-        location.reload();
-}
-
-function renderTypeform(form_id, variables) {
+export function renderTypeform(form_id, variables) {
     let formWrapper = document.querySelector('[w-el="visa_finder"]');
 
     // Create the query string dynamically
@@ -38,32 +27,17 @@ function renderTypeform(form_id, variables) {
     formWrapper.appendChild(iframe);
 }
 
-function toSafeFileName(text) {
+export function toSafeFileName(text) {
     // Replace non-alphanumeric characters with an empty string
     // Replace spaces with underscores, then convert to lowercase
     return text.replace(/[^a-z0-9\s]/gi, '').replace(/\s+/g, '_').toLowerCase();
 }
 
-// https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types
-const fileTypes = [
-    "image/apng",
-    "image/bmp",
-    "image/gif",
-    "image/jpeg",
-    "image/pjpeg",
-    "image/png",
-    "image/svg+xml",
-    "image/tiff",
-    "image/webp",
-    "image/x-icon",
-    "application/pdf",
-];
-
-function validFileType(file) {
+export function validFileType(file) {
     return fileTypes.includes(file.type);
 }
 
-function returnFileSize(number) {
+export function returnFileSize(number) {
     if (number < 1024) {
         return `${number} bytes`;
     } else if (number >= 1024 && number < 1048576) {
@@ -74,7 +48,7 @@ function returnFileSize(number) {
 }
 
 // Utility function to fetch a file as a blob
-async function fetchFile(url) {
+export async function fetchFile(url) {
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -83,7 +57,7 @@ async function fetchFile(url) {
 }
 
 // Main function to download files from URLs as a ZIP
-async function downloadFilesAsZip(data, zipName = 'download.zip') {
+export async function downloadFilesAsZip(data, zipName = 'download.zip') {
     const zip = new JSZip();
 
     // Use Promise.all to fetch all the files in parallel
@@ -100,13 +74,13 @@ async function downloadFilesAsZip(data, zipName = 'download.zip') {
     saveAs(content, zipName);
 }
 
-async function downloadAllFilesSubmodule(){
+export async function downloadAllFilesSubmodule(){
     const files = await getUploadedDocuments();
     const submodule_name = toSafeFileName(files[0]._submodules[0].title) + ".zip";
     downloadFilesAsZip(files,zipName=submodule_name);
 }
 
-function downloadFileFromUrl(url, filename) {
+export function downloadFileFromUrl(url, filename) {
     fetchFile(url)
         .then(blob => {
             saveAs(blob, filename);
