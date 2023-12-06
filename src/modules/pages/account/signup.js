@@ -1,121 +1,164 @@
-import { check_password, getCookie, setCookie, redirectToOnboarding } from "../../auth";
-
-export function render () {
-
-    let isValidPassword = false;
-    // 1. Remove w-form to prevent Webflow from handling it
-    const formElement = document.getElementById('wf-form-Signup-Form');
-    let errorDiv = formElement.parentElement.querySelector('[w-el="error"]');
-    errorDiv.style.display = 'none';
-    let successDiv;
+import { check_password, getCookie, setCookie, redirectToOnboarding, redirectToDashboard,TOKEN_KEY, sendVerificationMail, checkAuthentication } from "../../auth";
+import { setupForm } from "../../form_handling";
+import { logging } from "../../utils";
 
 
-    const password1 = document.querySelector('[w-el="signup_password"]');
-    const password2 = document.querySelector('[w-el="signup_password2"]');
+/**
+ * Renders and sets up the signup functionality.
+ * This function is called to initialize the signup page.
+ */
+export function render() {
+    logging.info({ message: "Initializing signup page", eventName: "signup_page_initialization" });
 
-    password1.addEventListener('change', function () {
-        isValidPassword = check_password(password1.value,password2.value);
-        errorDiv.style.display = 'none';
-    });
-
-    password2.addEventListener('change', function () {
-        isValidPassword = check_password(password1.value,password2.value);
-        errorDiv.style.display = 'none';
-    });
-
-    if (window.Webflow) {
-        window.Webflow.push(async () => {
-            try {
-
-                console.log(formElement);
-    
-                if (formElement && formElement.parentElement) {
-                    formElement.parentElement.classList.remove('w-form');
-    
-                    // 2. Find the error and success divs
-                    
-    
-                    // 3. Add our own submit handler
-                    formElement.onsubmit = async (event) => {
-                        try {
-
-                            event.preventDefault();
-
-                            const submitButton = document.querySelector('[w-el="submitButton"]');
-                            submitButton.value = submitButton.getAttribute('data-wait');
-
-
-                            if (!isValidPassword) {
-                                errorDiv.firstChild.textContent = "Please check the password requirements.";
-                                errorDiv.style.display = 'block';
-                                submitButton.value = "Signup";
-                            } else {
-                                // 4. Get the form data
-                                const formData = new FormData(formElement);
-
-                                // Create a new FormData object
-                                const submitFormData = new FormData();
-
-                                // Iterate over the original FormData
-                                for (let [key, value] of formData.entries()) {
-                                    if (key === 'signup_email') {
-                                        submitFormData.append('email', value);
-                                    } else if (key === 'signup_password') {
-                                        submitFormData.append('password', value);
-                                    }
-                                }
-                                
-                                // 5. Get the form entries as an object
-                                const data = Object.fromEntries(submitFormData.entries());
-                                console.log(data);
-                                
-                                // 6. Send the data to the server
-                                const response = await fetch(AUTH_URL + '/auth/signup_form', {
-                                    method: 'POST',
-                                    body: submitFormData,
-                                    headers: {}
-                                });
-
-                                // 6. Handle the response
-                                const responseData = await response.json();
-
-                                console.log(responseData);
-
-                                if (response.ok) {
-                                    setCookie(responseData.authToken);
-                                    // redirect to Dashboard
-                                    redirectToOnboarding();
-                                }
-        
-                                else {
-                                    /*
-                                    if (responseData.message === "No Account for this Email.") {
-                                        errorDiv.firstChild.textContent = responseData.message;
-                        
-                                    } else if (responseData.message === "Invalid Credentials.") {
-                                        errorDiv.firstChild.textContent = responseData.message;
-                                    } else {
-                                        errorDiv.firstChild.textContent = "Something went wrong... Please try again in a few minutes. If the error persists please contact us: hello@getworldify.com."
-                                    }
-                                    */
-
-                                    errorDiv.style.display = 'block';
-                                }
-                                submitButton.value = "Signup";
-                            }
-                        } catch (error) {
-                            // 7. Handle the error
-                            console.error("Error during login:", error);
-                        }
-                    
-                    }
-                    
-                };
-            } catch (e) {
-                console.error('error', e);
-                // errorDiv.style.display = 'block';
-            }
+    try {
+        setupForm('signup_form', transformSignupFormData, submitSignupFormData, handleSignupResponse,false);
+    } catch (error) {
+        logging.error({
+            message: "Error initializing signup form",
+            eventName: "signup_initialization_error",
+            extra: { errorDetails: error.message }
         });
     }
 }
 
+/**
+ * Transforms the signup form data for submission.
+ * 
+ * @param {FormData} formData - The original form data.
+ * @returns {FormData} - The transformed form data.
+ */
+function transformSignupFormData(formData) {
+    const transformedData = new FormData();
+    transformedData.append('email', formData.get('signup_email'));
+    transformedData.append('password', formData.get('signup_password'));
+    transformedData.append('confirmPassword', formData.get('signup_confirmPassword'));
+    return transformedData;
+}
+
+/**
+ * Submits the signup form data to the server.
+ * 
+ * @param {FormData} formData - The transformed form data.
+ * @returns {Promise<Object>} - The response data from the server.
+ */
+async function submitSignupFormData(inputFormData) {
+    const email = inputFormData.get('email');
+    const password = inputFormData.get('password');
+    const confirmPassword = inputFormData.get('confirmPassword');
+
+    // Validate email and passwords
+    if (!email || !password || !confirmPassword) {
+        return { success: false, message: 'Email, password and password confirmation are required.' };
+    }
+    // Check for password length (between 7 and 30 characters)
+    if (password.length < 7 || password.length > 30){
+        return {success: false, message: 'The password needs to be between 7 and 30 characters.'}
+    } 
+    // Check for at least one uppercase letter
+    if (!/[A-Z]/.test(password)) {
+        return {success: false, message: 'The password needs to contain at least one uppercase letter.'}
+    }
+    // Check for at least one lowercase letter
+    if (!/[a-z]/.test(password)) {
+        return {success: false, message: 'The password needs to contain at least one lowercase letter.'}
+    }
+    // Check for at least one number
+    if (!/[0-9]/.test(password)) {
+        return {success: false, message: 'The password needs to contain at least one number.'}
+    }
+    // Check for at least one special character
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+        return {success: false, message: 'The password needs to contain at least one special character.'}
+    }
+    // Check if both passwords match
+    if (password !== confirmPassword) {
+        return {success: false, message: 'The passwords do not match.'}
+    }
+
+    const formData = new FormData();
+    formData.append('email',inputFormData.get('email'));
+    formData.append('password',inputFormData.get('password'))
+
+    try {
+        const response = await fetch(`${AUTH_URL}/auth/signup`, {
+            method: 'POST',
+            body: formData,
+            headers: {}
+        });
+
+        const data = await response.json();
+
+        // Check the response status
+        if (response.ok) {
+            logging.info({
+                message: "Signup request successful",
+                eventName: "signup_success",
+                extra: {}
+            });
+            return { success: true, message: "Signup successful.", authToken: data.authToken };
+        } else {
+            const errorMessage = data.message || 'Signup failed due to unknown error';
+            logging.error({
+                message: `Signup request failed: ${errorMessage}`,
+                eventName: "signup_failed",
+                extra: { response: data }
+            });
+            return { success: false, message: errorMessage };
+        }
+    } catch (error) {
+        logging.error({
+            message: "Error during signup process",
+            eventName: "signup_process_error",
+            extra: { errorDetails: error.message }
+        });
+        return { success: false, message: error.message || "Error occurred during the signup process" };
+    }
+}
+
+/**
+ * Handles the response received after signup form submission.
+ * 
+ * @param {Object} response - The response object received from the form submission.
+ */
+async function handleSignupResponse(response) {
+    const formElement = document.getElementById('signup_form');
+    const successDiv = formElement ? formElement.parentNode.querySelector('[w-el="form_success"]') : null;
+
+    if (response.success) {
+        try {
+            setCookie(TOKEN_KEY, response.authToken);
+            if (formElement && successDiv) {
+                formElement.classList.add('hide');
+                successDiv.style.display = 'block';
+            }
+
+            logging.info({
+                message: "User signed up successfully",
+                eventName: "user_signup_success"
+            });
+
+            const authResponse = await checkAuthentication();
+            if (authResponse.success) {
+                await sendVerificationMail(authResponse.user.email, "email_verification", DOMAIN_URL + "/account/onboarding");
+            } else {
+                logging.warning({
+                    message: "Authentication check failed after signup",
+                    eventName: "post_signup_auth_check_failed",
+                    extra: { authResponse }
+                });
+            }
+        } catch (error) {
+            logging.error({
+                message: "Error in post-signup actions",
+                eventName: "post_signup_actions_error",
+                extra: { errorDetails: error.message }
+            });
+        }
+    } else {
+        logging.warning({
+            message: "Signup failed: " + response.message,
+            eventName: "user_signup_failed",
+            extra: { response }
+        });
+    }
+}

@@ -1,5 +1,166 @@
-import { getCookie, redirectVerifyEmail } from "../../auth";
+import { getCookie, getQueryParam, checkAuthentication} from "../../auth";
+import { setupForm } from "../../form_handling";
+import { logging } from "../../utils";
 
+export async function render () {
+    
+    const successBanner = document.querySelector('[w-el="verification_success"]');
+    const failedBanner = document.querySelector('[w-el="verification_failed"]');
+
+    //get cookie and check if user is already verified
+    const authResponse = await checkAuthentication();
+    console.log(authResponse.user.is_verified)
+    if (authResponse.success) {
+        if (!authResponse.user.is_verified) {
+            const magicToken = getQueryParam('token');
+            const formData = new FormData();
+
+            formData.append('magic_token',magicToken);
+
+            try {
+                const response = await fetch(AUTH_URL + '/auth/magic-login', {
+                    method: 'POST',
+                    headers: {},
+                    body: formData
+                });
+
+                const data = await response.json();
+                const authResponse = await checkAuthentication();
+                console.log(data);
+                console.log(response);
+
+                if (response.ok && authResponse.user.is_verified) {
+                    successBanner.classList.remove('hide');
+                    setTimeout(() => {
+                        successBanner.classList.add('hide');
+                    }, 10000);
+                } else {
+                    failedBanner.classList.remove('hide');
+                    setTimeout(() => {
+                        failedBanner.classList.add('hide');
+                        //redirectVerifyEmail();
+                    }, 10000);
+                }
+            } catch (error) {
+                console.error('Error with magic login:', error);
+            }
+        }
+    }
+    setupForm('onboarding_form_1',transformOnboardingFormData,submitOnboardingFormData,handleOnboardingResponse1,false)
+    setupForm('onboarding_form_2',transformOnboardingFormData,submitOnboardingFormData,handleOnboardingResponse2,false)
+    //setup form
+
+    //if not get the query parameter and perform all these actions.
+
+    //if this worked, show the success banner, hide it again after 10 seconds
+
+    // if it didnt work, show the error banner with the error message and redirect to the page where you can resend the link in 10 seconds (with timer).    
+}
+
+function transformOnboardingFormData(formData) {
+    const transformedData = new FormData();
+
+    for (const [key, value] of formData.entries()) {
+
+        const fieldName = key.split("_").slice(1).join("_");
+
+        // Splitting the key based on '__' to handle nested objects
+        const parts = fieldName.split('__');
+
+        // Determine if the form field is nested and append data accordingly
+        if (parts.length === 2) {
+            const [objectName, objectKey] = parts;
+            transformedData.append(`${objectName}[${objectKey}]`, value);
+        } else {
+            transformedData.append(fieldName, value);
+        }
+    }
+    return transformedData;
+}
+
+/**
+ * Submits the signup form data to the server.
+ * 
+ * @param {FormData} formData - The transformed form data.
+ * @returns {Promise<Object>} - The response data from the server.
+ */
+async function submitOnboardingFormData(inputFormData) {
+    
+    const token = getCookie("wized_token");
+
+    for (const [key, value] of inputFormData.entries()) {
+        console.log(`${key}: ${value}`);
+    }
+
+    try {
+        const response = await fetch(`${BASE_URL}/onboarding`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: inputFormData,
+            
+        });
+
+        const data = await response.json();
+
+        console.log(data)
+
+        // Check the response status
+        if (response.ok) {
+            logging.info({
+                message: "Signup request successful",
+                eventName: "signup_success",
+                extra: {}
+            });
+            return { success: true, message: "Submitting onboarding information was successful.",user:data };
+        } else {
+            const errorMessage = data.message || 'Signup failed due to unknown error';
+            logging.error({
+                message: `Signup request failed: ${errorMessage}`,
+                eventName: "signup_failed",
+                extra: { response: data }
+            });
+            return { success: false, message: errorMessage };
+        }
+    } catch (error) {
+        logging.error({
+            message: "Error during signup process",
+            eventName: "signup_process_error",
+            extra: { errorDetails: error.message }
+        });
+        return { success: false, message: error.message || "Error occurred during the onboarding submission process" };
+    }
+}
+
+/**
+ * Handles the response received after signup form submission.
+ * 
+ * @param {Object} response - The response object received from the form submission.
+ */
+async function handleOnboardingResponse1(response) {
+    const formElement = document.getElementById('onboarding_form_1').parentElement;
+    const nextFormElement = document.getElementById('onboarding_form_2').parentElement;
+
+    if (formElement && nextFormElement) {
+        formElement.classList.add('hide')
+        nextFormElement.classList.remove('hide')
+    }
+}
+
+/**
+ * Handles the response received after signup form submission.
+ * 
+ * @param {Object} response - The response object received from the form submission.
+ */
+async function handleOnboardingResponse2(response) {
+    const formElement = document.getElementById('onboarding_form_2').parentElement;
+    const nextFormElement = document.getElementById('onboarding_pricing');
+
+    if (formElement && nextFormElement) {
+        formElement.classList.add('hide')
+        nextFormElement.classList.remove('hide')
+    }
+}
+/*
 export function render () {
 
     // 1. Remove w-form to prevent Webflow from handling it
@@ -172,3 +333,4 @@ export function render () {
     }
 }
 
+*/
