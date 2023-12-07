@@ -49,7 +49,7 @@ const appRoutes = {
 function initApp() {
     displayLoader();
     const path = window.location.pathname;
-
+    
     // Handle authentication and user display for app routes
     if (path.startsWith('/app/')) {
         handleAppRoutes(path);
