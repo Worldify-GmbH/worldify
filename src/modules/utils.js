@@ -30,12 +30,12 @@ export async function renderTypeform(formId, variables) {
         const formContainer = document.querySelector('[w-el="visa_finder"]');
         if (!formContainer) {
             await logging.error({
-                message: "Form container element not found",
+                message: "Form container element not found. Form_id: " + formId,
                 eventName: "renderTypeform",
-                extra: { 
+                extra: { /*
                     context: "Initializing form rendering",
                     formId: formId, 
-                    variables: JSON.stringify(variables)  // Stringifying for better readability in logs
+                    variables: JSON.stringify(variables)  // Stringifying for better readability in logs */
                 }
             });
             return;
@@ -57,13 +57,13 @@ export async function renderTypeform(formId, variables) {
         formContainer.appendChild(iframe);
     } catch (error) {
         await logging.error({
-            message: "Unexpected error in renderTypeform",
+            message: "Unexpected error in renderTypeform. Form_id: " + formId,
             eventName: "renderTypeform_exception",
-            extra: { 
+            extra: { /*
                 context: "Appending iframe to container",
                 formId: formId, 
                 variables: JSON.stringify(variables),
-                errorDetails: error.message
+                errorDetails: error.message */
             }
         });
     }
@@ -80,11 +80,11 @@ export async function renderTypeform(formId, variables) {
 export function toSafeFileName(text) {
     if (typeof text !== 'string') {
         logging.warning({
-            message: "Non-string input provided to toSafeFileName",
+            message: "Non-string input provided to toSafeFileName. InputType: " + typeof text + ". Input value: " + text,
             eventName: "toSafeFileName",
-            extra: { 
+            extra: { /*
                 inputType: typeof text,
-                inputValue: text  // Include the actual input value for reference
+                inputValue: text  // Include the actual input value for reference */
             }
         });
         return '';
@@ -98,9 +98,9 @@ export function toSafeFileName(text) {
     logging.info({
         message: "Converted text to safe file name",
         eventName: "toSafeFileName",
-        extra: { 
+        extra: { /*
             originalText: text, 
-            convertedText: safeFileName 
+            convertedText: safeFileName */
         }
     });
 
@@ -117,9 +117,9 @@ export function validFileType(file) {
 
     if (typeof file !== 'object' || typeof file.type !== 'string') {
         logging.warning({
-            message: "Invalid input to validFileType",
+            message: "Invalid input to validFileType. FileType: " + typeof file,
             eventName: "validFileType_input_warning",
-            extra: { fileType: file ? file.type : null }
+            extra: {/* fileType: file ? file.type : null */}
         });
         return false;
     }
@@ -134,11 +134,10 @@ export function validFileType(file) {
  */
 export function returnFileSize(number) {
     if (typeof number !== 'number' || isNaN(number) || number < 0) {
-        const errorMessage = "Invalid file size: Input must be a non-negative number.";
         logging.error({
-            message: errorMessage,
+            message: "Invalid file size: Input must be a non-negative number. Input: " + number,
             eventName: "returnFileSize_input_error",
-            extra: { invalidInput: number }
+            extra: {}
         });
         throw new Error(errorMessage);
     }
@@ -175,16 +174,16 @@ export async function fetchFile(url) {
             logging.error({
                 message: errorMessage,
                 eventName: "fetchFile_network_error",
-                extra: { url, status: response.status }
+                extra: {}
             });
             throw new Error(errorMessage);
         }
         return response.blob();
     } catch (error) {
         logging.error({
-            message: error.message || "Error in fetchFile",
+            message: "Error in fetchFile: " + error.message + ". URL: "+ url,
             eventName: "fetchFile_error",
-            extra: { url, errorDetails: error.message }
+            extra: {}
         });
         throw error;
     }
@@ -225,9 +224,9 @@ async function downloadFilesAsZip(data, zipName = 'download.zip') {
     } catch (error) {
         // Log error and potentially handle it or re-throw
         logging.error({
-            message: "Failed to download files as ZIP",
+            message: "Failed to download files as ZIP: "+ error.message,
             eventName: "downloadFilesAsZip_error",
-            extra: { errorDetails: error.message, zipName }
+            extra: {}
         });
         throw error; // Rethrow the error if you want calling function to handle it
     }
@@ -264,9 +263,9 @@ export async function downloadAllFilesSubmodule() {
         await downloadFilesAsZip(uploadedDocuments, submodule_name);
     } catch (error) {
         logging.error({
-            message: "Failed to download all files in submodule",
+            message: "Failed to download all files in submodule: " + error.message,
             eventName: "downloadAllFilesSubmodule_error",
-            extra: { errorDetails: error.message }
+            extra: {}
         });
         throw error; // Re-throw the error for further handling if necessary
     }
@@ -292,11 +291,11 @@ export async function downloadFileFromUrl(url, filename) {
     } catch (error) {
         // Log any errors that occur during fetching or downloading the file
         logging.error({
-            message: "File download failed",
+            message: "File download failed. Url: "+ url+". Message: " + error.message,
             eventName: "downloadFileFromUrl_error",
-            extra: {url: url, 
+            extra: {/*url: url, 
                 filename: filename, 
-                errorDetails: error.message }
+                errorDetails: error.message */}
         });
     }
 }
@@ -378,16 +377,16 @@ export async function get_tf_result(form_id, response_id, maxRetries = 3, delay 
         } catch (error) {
             // Log any errors that occur during the fetch
             logging.error({
-                message: 'Error in fetching Typeform response',
+                message: 'Error in fetching Typeform response: ' + error.message,
                 eventName: "get_tf_result_error",
-                extra: { errorDetails: error.message, attempt, delay }
+                extra: { /*errorDetails: error.message, attempt, delay*/ }
             });
             if (attempt < maxRetries) {
                 // Log an informational message about the retry after an error, then retry after a delay
                 logging.info({
                     message: `Error occurred. Retrying attempt ${attempt} in ${delay}ms...`,
                     eventName: "get_tf_result_retry_error",
-                    extra: { attempt, delay }
+                    extra: {}
                 });
                 await new Promise(resolve => setTimeout(resolve, delay));
             }
@@ -432,19 +431,17 @@ export async function getModuleStatus(module) {
             logging.info({
                 message: `Received response for ${module} status, but response was not OK`,
                 eventName: "getModuleStatus_non_ok_response",
-                extra: { 
+                extra: { /*
                     module: module, 
-                    responseStatus: response.status }
+                    responseStatus: response.status*/ }
             });
         }
     } catch (error) {
         // Log any errors that occur during the fetch
         logging.error({
-            message: `Error during get ${module} Status`,
+            message: `Error during get ${module} Status: ${error.message}`,
             eventName: "getModuleStatus_error",
-            extra: { 
-                module: module, 
-                rrorDetails: error.message }
+            extra: {}
         });
     }
 }
@@ -547,3 +544,21 @@ export const logging = {
         return this.sendLog({ severity: 'critical', ...args });
     }
 };
+
+export function attachDatePicker() {
+    const datepickerElements = document.querySelectorAll('.datepicker');
+
+    datepickerElements.forEach(element => {
+        new Pikaday({
+            field: element,
+            format: 'YYYY-MM-DD',
+            toString(date, format) {
+            const day = date.getDate();
+            const month = date.getMonth() + 1;
+            const year = date.getFullYear();
+            return `${year}-${month}-${day}`;
+            }
+        });
+    });
+
+}

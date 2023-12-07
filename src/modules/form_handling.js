@@ -16,7 +16,7 @@ export function setupForm(formId, onSubmitCustom, submitFormData, responseHandle
         logging.error({
             message: `setupForm: Form with ID '${formId}' not found`,
             eventName: "form_setup_error",
-            extra: { formId }
+            extra: {}
         });
         return;
     }
@@ -42,9 +42,9 @@ export function setupForm(formId, onSubmitCustom, submitFormData, responseHandle
             }
         } catch (error) {
             logging.error({
-                message: "Error during form submission",
+                message: "Error during form submission for form " + formId + ": " + error.message,
                 eventName: "form_submission_error",
-                extra: { formId, errorDetails: error.message }
+                extra: {}
             });
         } finally {
             // Restore the submit button to its initial state
@@ -78,9 +78,9 @@ function handleFormResponse(formElement, response, formType,show_success) {
     // Validate if the form element is an HTMLFormElement
     if (!(formElement instanceof HTMLFormElement)) {
         logging.error({
-            message: 'handleFormResponse: Invalid form element',
+            message: 'handleFormResponse: Invalid form element. FormElementType: ' + typeof formElement,
             eventName: 'handleFormResponse_invalid_input',
-            extra: { formElementType: typeof formElement }
+            extra: {}
         });
         return;
     }
@@ -88,9 +88,9 @@ function handleFormResponse(formElement, response, formType,show_success) {
     // Ensure the response is an object
     if (typeof response !== 'object' || response === null) {
         logging.error({
-            message: 'handleFormResponse: Invalid response object',
+            message: 'handleFormResponse: Invalid response object. ResponseType: ' + typeof response,
             eventName: 'handleFormResponse_invalid_response',
-            extra: { responseType: typeof response }
+            extra: {}
         });
         return;
     }
@@ -100,9 +100,9 @@ function handleFormResponse(formElement, response, formType,show_success) {
 
     if (!successDiv || !errorDiv) {
         logging.error({
-            message: 'handleFormResponse: Success or Error division not found in the form',
+            message: 'handleFormResponse: Success or Error division not found in the form for form_id: ' + formElement.id,
             eventName: 'handleFormResponse_no_div_found',
-            extra: { formId: formElement.id }
+            extra: {}
         });
         return;
     }
@@ -132,9 +132,9 @@ function displayFormFeedback(formElement, message) {
     // Validate if the form element is an HTMLFormElement
     if (!(formElement instanceof HTMLFormElement)) {
         logging.error({
-            message: 'displayFormFeedback: Invalid form element',
+            message: 'displayFormFeedback: Invalid form element. formElementType: ' + typeof formElement,
             eventName: 'displayFormFeedback_invalid_input',
-            extra: { formElementType: typeof formElement }
+            extra: {}
         });
         return;
     }
@@ -142,9 +142,9 @@ function displayFormFeedback(formElement, message) {
     // Ensure the message is a string
     if (typeof message !== 'string') {
         logging.error({
-            message: 'displayFormFeedback: Non-string message provided',
+            message: 'displayFormFeedback: Non-string message provided. messageType: ' + typeof message,
             eventName: 'displayFormFeedback_invalid_message',
-            extra: { messageType: typeof message }
+            extra: {}
         });
         return;
     }
@@ -154,9 +154,9 @@ function displayFormFeedback(formElement, message) {
     // Check if the error division exists
     if (!errorDiv) {
         logging.error({
-            message: 'displayFormFeedback: Error division not found in the form',
+            message: 'displayFormFeedback: Error division not found in the form for form_id: ' + formElement.id,
             eventName: 'displayFormFeedback_no_error_div',
-            extra: { formId: formElement.id }
+            extra: {}
         });
         return;
     }
@@ -164,9 +164,9 @@ function displayFormFeedback(formElement, message) {
     // Check if the error division has a first child for displaying the message
     if (!errorDiv.firstChild) {
         logging.error({
-            message: 'displayFormFeedback: No element to display the message in error division',
+            message: 'displayFormFeedback: No element to display the message in error division for form_id: '+ formElement.id ,
             eventName: 'displayFormFeedback_no_child_element',
-            extra: { formId: formElement.id }
+            extra: {}
         });
         return;
     }
@@ -189,9 +189,9 @@ function displayFormFeedback(formElement, message) {
 function showSavedFeedback(inputElement) {
     if (!(inputElement instanceof HTMLElement)) {
         logging.error({
-            message: 'showSavedFeedback: Invalid input element',
+            message: 'showSavedFeedback: Invalid input element. inputElementType: ' + typeof inputElement,
             eventName: 'showSavedFeedback_invalid_input',
-            extra: { inputElementType: typeof inputElement }
+            extra: {}
         });
         return;
     }
@@ -216,9 +216,9 @@ function showSavedFeedback(inputElement) {
 
     } catch (error) {
         logging.error({
-            message: 'Error in showSavedFeedback',
+            message: 'Error in showSavedFeedback: ' + error.message,
             eventName: 'showSavedFeedback_exception',
-            extra: { errorDetails: error.message }
+            extra: {}
         });
     }
 }
@@ -249,9 +249,6 @@ export async function autoSaveFunction(event, endpointUrl) {
 
     try {
 
-        for (const [key, value] of formData.entries()){
-            console.log(`${key}: ${value}`);
-        }
         const response = await fetch(endpointUrl, {
             method: 'POST',
             headers: { 
@@ -265,16 +262,16 @@ export async function autoSaveFunction(event, endpointUrl) {
         } else {
             const errorResponse = await response.json();
             logging.error({
-                message: 'Error saving data',
+                message: `Error saving data: ' + ${errorResponse.message}. Url: ${endpointUrl}`,
                 eventName: 'autoSaveFunction_error',
-                extra: { fieldName, error: errorResponse.message, endpointUrl }
+                extra: {}
             });
         }
     } catch (error) {
         logging.error({
-            message: 'Exception in autoSaveFunction',
+            message: 'Exception in autoSaveFunction: ' + error.message,
             eventName: 'autoSaveFunction_exception',
-            extra: { fieldName, errorDetails: error.message, endpointUrl }
+            extra: {}
         });
     }
 }
@@ -290,7 +287,7 @@ export function fillFieldsFromDatabase(data, prefix = '') {
         logging.error({
             message: "Invalid or null data provided to fillFieldsFromDatabase",
             eventName: "fillFieldsFromDatabase_invalid_data",
-            extra: { data }
+            extra: {}
         });
         return;
     }
@@ -308,7 +305,7 @@ export function fillFieldsFromDatabase(data, prefix = '') {
                 logging.warning({
                     message: `Input field not found for key: ${prefix}${key}`,
                     eventName: "fillFieldsFromDatabase_field_not_found",
-                    extra: { key: prefix + key }
+                    extra: {}
                 });
             }
         } else {

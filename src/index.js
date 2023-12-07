@@ -3,8 +3,6 @@ import { displayLoader, logging } from './modules/utils.js';
 import * as Login from './modules/pages/account/login.js';
 import * as Signup from './modules/pages/account/signup.js';
 import * as Onboarding from './modules/pages/account/onboarding.js';
-import * as SendMailVerification from './modules/pages/account/send_mail_verification.js';
-import * as EmailVerification from './modules/pages/account/verify_mail.js';
 import * as Dashboard from './modules/pages/app/dashboard.js';
 import * as Visa from './modules/pages/app/Visa/visa.js';
 import * as VisaFinder from './modules/pages/app/Visa/visa_finder.js';
@@ -13,6 +11,8 @@ import * as HealthInsurance from './modules/pages/app/Health_Insurance/health_in
 import * as HealthInsuranceFinder from './modules/pages/app/Health_Insurance/health_insurance_finder.js';
 import * as AccountSettings from './modules/pages/account/account_settings.js';
 import * as AccountPage from './modules/form_handling.js';
+import * as SendPasswordReset from './modules/pages/account/send_password_reset.js';
+import * as PasswordReset from './modules/pages/account/reset_password.js';
 
 // Define routes for account-related pages
 const accountRoutes = {
@@ -20,7 +20,9 @@ const accountRoutes = {
     '/account/signup' : Signup.render,
     '/account/onboarding' : Onboarding.render,
     '/account/verify-email' : SendMailVerification.render,
-    '/account/email-verification' : EmailVerification.render
+    '/account/email-verification' : EmailVerification.render,
+    '/account/send-password-reset' : SendPasswordReset.render,
+    '/account/reset-password': PasswordReset.render
 }
 
 // Define routes for application-specific pages

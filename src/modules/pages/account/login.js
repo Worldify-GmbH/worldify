@@ -13,11 +13,11 @@ export function render() {
         window.Webflow.push(() => {
             try {
                 setupForm('login_form', transformLoginFormData, submitLoginFormData, handleLoginResponse,false);
-            } catch (e) {
+            } catch (error) {
                 logging.error({
-                    message: "Error initializing login form",
+                    message: "Error initializing login form: " + error.message,
                     eventName: "login_initialization_error",
-                    extra: { errorDetails: e.message }
+                    extra: {}
                 });
             }
         });
@@ -76,15 +76,15 @@ async function submitLoginFormData(inputFormData) {
             logging.error({
                 message: `Login request failed: ${errorMessage}`,
                 eventName: "login_failed",
-                extra: { response: data }
+                extra: { /*response: data*/ }
             });
             return { success: false, message: errorMessage };
         }
     } catch (error) {
         logging.error({
-            message: "Error during login process",
+            message: "Error during login process: " + error.message,
             eventName: "login_exception",
-            extra: { errorDetails: error.message }
+            extra: {}
         });
         return { success: false, message: error.message || "Error occurred during the login process" };
     }
@@ -107,7 +107,7 @@ async function handleLoginResponse(response) {
         logging.warning({
             message: "Login failed: " + response.message,
             eventName: "user_login_failed",
-            extra: { response }
+            extra: {}
         });
         // Handle displaying the error message on the login form
     }

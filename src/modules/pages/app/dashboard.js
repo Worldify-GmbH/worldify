@@ -10,17 +10,14 @@ export async function render() {
         // Render the dashboard contents
         await renderDashboard();
 
-        // Log information about the rendering process
-        logging.info({ message: "Dashboard rendered successfully", eventName: "dashboard_render_success" });
-
         // Setup event listener for module list interactions
         setupModuleListEventListener();
     } catch (error) {
         // Log any errors encountered during the rendering process
         logging.error({
-            message: "Error during rendering dashboard",
+            message: "Error during rendering dashboard: " + error.message,
             eventName: "dashboard_render_error",
-            extra: { errorDetails: error.message }
+            extra: {}
         });
     }
 }
@@ -143,28 +140,22 @@ async function getModules() {
         const data = await response.json();
 
         if (response.ok) {
-            // Log success using the custom logging framework
-            logging.info({
-                message: "Modules fetched successfully",
-                eventName: "getModules_success",
-                extra: { data }
-            });
             return data;
         } else {
             // Log non-successful responses using the custom logging framework
             logging.error({
                 message: `Failed to fetch modules: ${response.status} - ${response.statusText}`,
                 eventName: "getModules_failure",
-                extra: { responseStatus: response.status, responseText: response.statusText }
+                extra: {}
             });
             return null;
         }
     } catch (error) {
         // Log any errors during the fetch process using the custom logging framework
         logging.error({
-            message: "Error during getModules",
+            message: "Error during getModules: " + error.message,
             eventName: "getModules_error",
-            extra: { errorDetails: error.message }
+            extra: {}
         });
         return null;
     }
@@ -178,11 +169,6 @@ async function getModules() {
  * @returns {Promise<Object|null>} The response data if successful, or null if an error occurs.
  */
 async function pinModule(module_id) {
-    logging.info({
-        message: "pinModule function called",
-        eventName: "pinModule_call",
-        extra: { module_id }
-    });
 
     const token = `Bearer ${getCookie("wized_token")}`;
 
@@ -200,24 +186,24 @@ async function pinModule(module_id) {
 
         if (response.ok) {
             logging.info({
-                message: "Module pinned successfully",
+                message: "Module pinned successfully. Module_id: "+ module_id,
                 eventName: "pinModule_success",
-                extra: { data }
+                extra: {}
             });
             return data;
         } else {
             logging.error({
-                message: `Failed to pin module: ${response.status} - ${response.statusText}`,
+                message: `Failed to pin module (${module_id}): ${response.status} - ${response.statusText}`,
                 eventName: "pinModule_failure",
-                extra: { module_id, responseStatus: response.status, responseText: response.statusText }
+                extra: {}
             });
             return null;
         }
     } catch (error) {
         logging.error({
-            message: "Error during pinModule",
+            message: "Error during pinModule. Module_id: " + module_id,
             eventName: "pinModule_error",
-            extra: { module_id, errorDetails: error.message }
+            extra: {}
         });
         return null;
     }
@@ -257,9 +243,9 @@ async function renderDashboard() {
         });
     } catch (error) {
         logging.error({
-            message: "Error during renderDashboard",
+            message: "Error during renderDashboard: " + error.message,
             eventName: "renderDashboard_error",
-            extra: { errorDetails: error.message }
+            extra: {}
         });
     }
 }
@@ -309,9 +295,9 @@ function setupModuleListEventListener() {
                     await renderDashboard();
                 } catch (error) {
                     logging.error({
-                        message: "Error during module pinning",
+                        message: "Error during module pinning: " + m+ error.message,
                         eventName: "module_pinning_error",
-                        extra: { moduleId: module_item.id, errorDetails: error.message }
+                        extra: {}
                     });
                 }
             }

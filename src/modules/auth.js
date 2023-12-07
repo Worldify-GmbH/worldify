@@ -12,7 +12,7 @@ export function getCookie(name) {
         logging.warning({
             message: `getCookie: Invalid cookie name '${name}'`,
             eventName: "getCookie_invalid_name",
-            extra: { cookieName: name }
+            extra: {}
         });
         return null;
     }
@@ -30,7 +30,7 @@ export function getCookie(name) {
     logging.info({
         message: `getCookie: Cookie '${name}' not found`,
         eventName: "getCookie_not_found",
-        extra: { cookieName: name }
+        extra: {}
     });
     return null;
 }
@@ -46,9 +46,9 @@ export function getCookie(name) {
 export function setCookie(name, value, days = 30, path = '/') {
     if (!name || typeof name !== 'string' || !value || typeof value !== 'string') {
         logging.warning({
-            message: "setCookie: Invalid name or value",
+            message: `setCookie: Invalid name or value. Name: ${name}, Value: ${value}`,
             eventName: "setCookie_invalid_input",
-            extra: { cookieName: name, cookieValue: value }
+            extra: {}
         });
         return;
     }
@@ -60,7 +60,7 @@ export function setCookie(name, value, days = 30, path = '/') {
     logging.info({
         message: "Cookie set successfully",
         eventName: "setCookie_success",
-        extra: { cookieName: name, cookieValue: encodedValue, expires: expires, path: path }
+        extra: {}
     });
 }
 
@@ -73,9 +73,9 @@ export function setCookie(name, value, days = 30, path = '/') {
 export function deleteCookie(name, path = '/') {
     if (!name || typeof name !== 'string') {
         logging.warning({
-            message: "deleteCookie: Invalid cookie name",
+            message: `deleteCookie: Invalid cookie name. Name: ${name}`,
             eventName: "deleteCookie_invalid_name",
-            extra: { cookieName: name }
+            extra: {}
         });
         return;
     }
@@ -84,9 +84,9 @@ export function deleteCookie(name, path = '/') {
     document.cookie = `${encodeURIComponent(name)}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=${path}`;
 
     logging.info({
-        message: "Cookie deleted successfully",
+        message: `Cookie deleted successfully`,
         eventName: "deleteCookie_success",
-        extra: { cookieName: name, path }
+        extra: {}
     });
 }
 
@@ -173,9 +173,9 @@ export function check_password(x,y) {
 export function getQueryParam(paramName) {
     if (!paramName || typeof paramName !== 'string') {
         logging.warning({
-            message: "getQueryParam: Invalid parameter name",
+            message: `getQueryParam: Invalid parameter name. Parameter name: ${paramName}`,
             eventName: "getQueryParam_invalid_param",
-            extra: { paramName }
+            extra: {}
         });
         return null;
     }
@@ -187,14 +187,14 @@ export function getQueryParam(paramName) {
         logging.info({
             message: "Query parameter retrieved",
             eventName: "getQueryParam_success",
-            extra: { paramName, value }
+            extra: { /*paramName, value */}
         });
         return value;
     } else {
         logging.info({
-            message: "Query parameter not found",
+            message: `Query parameter not found. Parameter name: ${paramName}`,
             eventName: "getQueryParam_not_found",
-            extra: { paramName }
+            extra: {}
         });
         return null;
     }
@@ -226,9 +226,9 @@ export async function sendVerificationMail(email, sendgrid_template, redirect_ur
         if (!response.ok) {
             // Log an error if the response is not OK
             logging.error({
-                message: "Verification mail sending failed",
+                message: `Sending verification mail to ${email} failed: ${jsonResponse}`,
                 eventName: "sendVerificationMail_failed",
-                extra: { email, response: jsonResponse }
+                extra: {}
             });
             return null;
         }
@@ -236,15 +236,15 @@ export async function sendVerificationMail(email, sendgrid_template, redirect_ur
         logging.info({
             message: "Verification mail sent successfully",
             eventName: "sendVerificationMail_success",
-            extra: { email, response: jsonResponse }
+            extra: {}
         });
 
         return jsonResponse;
     } catch (error) {
         logging.error({
-            message: "Error while sending verification mail",
+            message: "Error while sending verification mail to " + email + ". Message: " + error.message,
             eventName: "sendVerificationMail_exception",
-            extra: { email, errorDetails: error.message }
+            extra: {}
         });
         return null;
     }
@@ -262,7 +262,7 @@ async function verifyAndGetUser(token) {
         logging.warning({
             message: "verifyAndGetUser: Invalid or missing token",
             eventName: "verifyAndGetUser_invalid_input",
-            extra: { token }
+            extra: {}
         });
         return {success: false, user: null};
     }
@@ -282,15 +282,15 @@ async function verifyAndGetUser(token) {
             logging.error({
                 message: `Token verification failed: ${errorMessage}`,
                 eventName: "verifyAndGetUser_failed",
-                extra: { token: token, response: data }
+                extra: {}
             });
             return {success: false, user: null};
         }
     } catch (error) {
         logging.error({
-            message: "Error in verifyAndGetUser",
+            message: `Error in verifyAndGetUser: ${error.message}`,
             eventName: "verifyAndGetUser_exception",
-            extra: { token: token, errorDetails: error.message }
+            extra: {}
         });
         return {success: false, user: null};
     }
@@ -310,7 +310,7 @@ export async function getAccountSettings(token) {
             eventName: "getAccountSettings_invalid_token",
             extra: { token }
         });
-        return { success: false, user: null };
+        return {};
     }
 
     try {
@@ -324,9 +324,9 @@ export async function getAccountSettings(token) {
         if (response.ok) {
             if (data.id) {
                 logging.info({
-                    message: "Account settings retrieved successfully",
+                    message: `Account settings retrieved successfully for user ${data.id}`,
                     eventName: "getAccountSettings_success",
-                    extra: { userId: data.id }
+                    extra: {}
                 });
                 return { success: true, user: data };
             } else {
@@ -335,7 +335,7 @@ export async function getAccountSettings(token) {
                     eventName: "getAccountSettings_no_id",
                     extra: { response: data }
                 });
-                return { success: false, user: null };
+                return {};
             }
         } else {
             const errorMessage = data.message || 'Unknown error during account settings retrieval';
@@ -344,7 +344,7 @@ export async function getAccountSettings(token) {
                 eventName: "getAccountSettings_failed",
                 extra: { response: data }
             });
-            return { success: false, user: null };
+            return {};
         }
     } catch (error) {
         logging.error({
@@ -352,7 +352,7 @@ export async function getAccountSettings(token) {
             eventName: "getAccountSettings_exception",
             extra: { errorDetails: error.message }
         });
-        return { success: false, user: null };
+        return {};
     }
 }
 
@@ -366,7 +366,7 @@ export async function getAccountSettings(token) {
  * @returns {Promise<Object>} - An object containing the success status and message.
  */
 export async function resetPassword(inputFormData) {
-
+    
     const password = inputFormData.get('password');
     const confirmPassword = inputFormData.get('confirmPassword');
     // Validate password criteria
@@ -405,7 +405,7 @@ export async function resetPassword(inputFormData) {
 
     // Prepare the form data for the request
     const formData = new FormData();
-    formData.append('password', password);
+    formData.append('password', password);    
 
     try {
         // Send the POST request to the server
@@ -421,9 +421,9 @@ export async function resetPassword(inputFormData) {
         // Check the response status
         if (response.ok) {
             logging.info({
-                message: "Password reset request sent successfully",
+                message: "Password reset request sent successfully to " + data.email,
                 eventName: "resetPassword_success",
-                extra: { email: data.email }
+                extra: {}
             });
             return { success: true, message: "Password reset was successful." };
         } else {
@@ -431,15 +431,15 @@ export async function resetPassword(inputFormData) {
             logging.error({
                 message: `Password reset request failed: ${errorMessage}`,
                 eventName: "resetPassword_failed",
-                extra: { response: data }
+                extra: { /*response: data*/ }
             });
             return { success: false, message: errorMessage };
         }
     } catch (error) {
         logging.error({
-            message: "Error in resetPassword",
+            message: "Error in resetPassword: " + error.message,
             eventName: "resetPassword_exception",
-            extra: { errorDetails: error.message }
+            extra: {}
         });
         return { success: false, message: error.message || "Error occurred during password reset" };
     }
@@ -488,9 +488,9 @@ export async function emailReset(inputFormData) {
         // Check the response status
         if (response.ok) {
             logging.info({
-                message: "Email reset request sent successfully",
+                message: `Email reset request sent successfully. Old email: ${email}, New email: ${data.email}`,
                 eventName: "emailReset_success",
-                extra: { email_old: email, email_new: data.email }
+                extra: {}
             });
             return { success: true, message: "Your email address was successfully changed. \n\nYou will be logged out in a few seconds. Please login with your new credentials.", user:data };
         } else {
@@ -498,68 +498,17 @@ export async function emailReset(inputFormData) {
             logging.error({
                 message: `Email reset request failed: ${errorMessage}`,
                 eventName: "emailReset_failed",
-                extra: { response: data }
+                extra: { /*response: data*/ }
             });
             return { success: false, message: errorMessage };
         }
     } catch (error) {
         logging.error({
-            message: "Error in emailReset",
+            message: "Error in emailReset: " + error.message,
             eventName: "emailReset_exception",
-            extra: { errorDetails: error.message }
+            extra: {}
         });
         return { success: false, message: error.message || "Error occurred during email reset" };
-    }
-}
-
-
-//TODO
-async function sendPasswordResetLink(){
-    const emailInput = document.querySelector('[w-el="passwordReset_email"]').value;
-    const buttonLoader = document.querySelector('[w-el="button_loader"]');
-    const errorWrapper = document.querySelector('[w-el="passwordReset_error"]');
-
-    try {
-
-        buttonLoader.classList.remove('hide');
-
-        var response = await sendVerificationMail(email=emailInput, sendgrid_template="password_reset",redirect_uri=domainUrl+"/account/reset-password");
-
-        buttonLoader.classList.add('hide');
-
-        // Check the response
-        if (response.message.success) {
-            // Successful signup
-
-            // Redirect to Page where you can reset your password
-            redirectToPasswordPending();
-        } else {
-
-            if (errorWrapper.hasChildNodes) {
-                while (errorWrapper.firstChild) {
-                    errorWrapper.removeChild(errorWrapper.firstChild);
-                }
-            }
-            const para = document.createElement('p');
-            para.classList.add('error-message-text');
-
-            if (response.message === "No user found for that email.") {
-                const signupLink = domainUrl+"/account/signup"; // replace with your signup link
-                para.innerHTML = "We couldn't find a user for the email you provided. If you want to signup for a new account, please click <a href='" + signupLink + "'>here</a>.";
-
-            } else if (response.message === "email is required but was not suppiled.") {
-                para.textContent = "You did not provide an email address. Please type in the email you used for the account.";
-            } else {
-                para.textContent = "Something went wrong... Please try again in a few minutes. If the error persists please contact us: hello@getworldify.com."
-            }
-
-            errorWrapper.appendChild(para);
-            errorWrapper.classList.remove('hide');
-            // Display an error message
-            console.error("Login failed:", response.message || "Unknown error");
-        }
-    } catch (error) {
-        console.error("Error during login:", error);
     }
 }
 
@@ -593,9 +542,9 @@ export async function checkAuthentication() {
         return { success: true, user: response.user };
     } catch (error) {
         logging.error({
-            message: "Error in checkAuthentication",
+            message: "Error in checkAuthentication: " + error.message,
             eventName: "checkAuthentication_exception",
-            extra: { errorDetails: error.message }
+            extra: {}
         });
 
         // In case of an error, consider the user unauthenticated
@@ -611,9 +560,9 @@ export async function checkAuthentication() {
 export async function displayUser(user) {
     if (!user || typeof user !== 'object') {
         logging.error({
-            message: "displayUser: Invalid user object",
+            message: "displayUser: Invalid user object for user: " + user.id,
             eventName: "displayUser_invalid_input",
-            extra: { user: user }
+            extra: {}
         });
         return;
     }
@@ -633,9 +582,9 @@ export async function displayUser(user) {
             });
         } else {
             logging.warning({
-                message: `displayUser: Missing user attribute '${field.attribute}'`,
+                message: `displayUser: Missing user attribute '${field.attribute}' for user ${user.id}`,
                 eventName: "displayUser_missing_attribute",
-                extra: { user: user }
+                extra: {}
             });
         }
     });
@@ -649,9 +598,9 @@ export async function displayUser(user) {
 function redirectTo(path) {
     if (!path || typeof path !== 'string') {
         logging.error({
-            message: "redirectTo: Invalid path",
+            message: "redirectTo: Invalid path. Path: " + path,
             eventName: "redirectTo_invalid_input",
-            extra: { path }
+            extra: {}
         });
         return;
     }
@@ -667,6 +616,7 @@ export const redirectToOnboarding = () => redirectTo('/account/onboarding');
 export const redirectToVerificationPending = () => redirectTo('/account/email-verification-pending');
 export const redirectToPasswordPending = () => redirectTo('/account/password-reset-pending');
 export const redirectVerifyEmail = () => redirectTo('/account/verify-email');
+export const redirectSendPasswordReset = () => redirectTo('/account/send-password-reset');
 
 
 /**

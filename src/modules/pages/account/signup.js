@@ -1,4 +1,4 @@
-import { check_password, getCookie, setCookie, redirectToOnboarding, redirectToDashboard,TOKEN_KEY, sendVerificationMail, checkAuthentication } from "../../auth";
+import { setCookie ,TOKEN_KEY, sendVerificationMail, checkAuthentication } from "../../auth";
 import { setupForm } from "../../form_handling";
 import { logging } from "../../utils";
 
@@ -8,15 +8,14 @@ import { logging } from "../../utils";
  * This function is called to initialize the signup page.
  */
 export function render() {
-    logging.info({ message: "Initializing signup page", eventName: "signup_page_initialization" });
 
     try {
         setupForm('signup_form', transformSignupFormData, submitSignupFormData, handleSignupResponse,false);
     } catch (error) {
         logging.error({
-            message: "Error initializing signup form",
+            message: "Error initializing signup form: " + error.message,
             eventName: "signup_initialization_error",
-            extra: { errorDetails: error.message }
+            extra: {}
         });
     }
 }
@@ -101,15 +100,15 @@ async function submitSignupFormData(inputFormData) {
             logging.error({
                 message: `Signup request failed: ${errorMessage}`,
                 eventName: "signup_failed",
-                extra: { response: data }
+                extra: { /*response: data*/ }
             });
             return { success: false, message: errorMessage };
         }
     } catch (error) {
         logging.error({
-            message: "Error during signup process",
+            message: "Error during signup process: " + error.message,
             eventName: "signup_process_error",
-            extra: { errorDetails: error.message }
+            extra: {}
         });
         return { success: false, message: error.message || "Error occurred during the signup process" };
     }
@@ -132,11 +131,6 @@ async function handleSignupResponse(response) {
                 successDiv.style.display = 'block';
             }
 
-            logging.info({
-                message: "User signed up successfully",
-                eventName: "user_signup_success"
-            });
-
             const authResponse = await checkAuthentication();
             if (authResponse.success) {
                 await sendVerificationMail(authResponse.user.email, "email_verification", DOMAIN_URL + "/account/onboarding");
@@ -144,21 +138,21 @@ async function handleSignupResponse(response) {
                 logging.warning({
                     message: "Authentication check failed after signup",
                     eventName: "post_signup_auth_check_failed",
-                    extra: { authResponse }
+                    extra: { /*authResponse*/ }
                 });
             }
         } catch (error) {
             logging.error({
-                message: "Error in post-signup actions",
+                message: "Error in post-signup actions" + error.message,
                 eventName: "post_signup_actions_error",
-                extra: { errorDetails: error.message }
+                extra: {}
             });
         }
     } else {
         logging.warning({
             message: "Signup failed: " + response.message,
             eventName: "user_signup_failed",
-            extra: { response }
+            extra: { /*response*/ }
         });
     }
 }

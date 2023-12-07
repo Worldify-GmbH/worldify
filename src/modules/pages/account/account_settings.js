@@ -24,9 +24,9 @@ export async function render() {
             }
         } else {
             logging.error({
-                message: 'render: Failed to fetch account settings',
+                message: 'render: Failed to fetch account settings: ' + response.message,
                 eventName: 'render_fetch_error',
-                extra: { errorDetails: response.message }
+                extra: {}
             });
             return;
         }
@@ -36,9 +36,9 @@ export async function render() {
 
     } catch (error) {
         logging.error({
-            message: 'Error in render function',
+            message: 'Error in render function: ' + error.message,
             eventName: 'render_exception',
-            extra: { errorDetails: error.message }
+            extra: {}
         });
     }
 }
