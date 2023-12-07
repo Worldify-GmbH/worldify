@@ -19,8 +19,6 @@ const accountRoutes = {
     '/account/login' : Login.render,
     '/account/signup' : Signup.render,
     '/account/onboarding' : Onboarding.render,
-    '/account/verify-email' : SendMailVerification.render,
-    '/account/email-verification' : EmailVerification.render,
     '/account/send-password-reset' : SendPasswordReset.render,
     '/account/reset-password': PasswordReset.render
 }
