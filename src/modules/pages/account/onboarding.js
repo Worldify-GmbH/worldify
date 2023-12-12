@@ -1,4 +1,4 @@
-import { getCookie, getQueryParam, checkAuthentication} from "../../auth";
+import { getCookie, getQueryParam, checkAuthentication, redirectResendEmailVerification} from "../../auth";
 import { setupForm } from "../../form_handling";
 import { attachDatePicker, logging } from "../../utils";
 
@@ -9,6 +9,7 @@ import { attachDatePicker, logging } from "../../utils";
 export async function render() {
     const successBanner = document.querySelector('[w-el="verification_success"]');
     const failedBanner = document.querySelector('[w-el="verification_failed"]');
+    const failedText = failedBanner.querySelector('[w-el="verificationFailed_text"]');
     attachDatePicker();
 
     // Check if user is already verified
@@ -35,12 +36,30 @@ export async function render() {
                         successBanner.classList.remove('hide');
                         setTimeout(() => successBanner.classList.add('hide'), 10000);
                     } else {
+                        failedText.textContent = "Email Verification failed. "+ data.message +". You will be redirected to the Resend Email Verification Link page shortly to try again.";
                         failedBanner.classList.remove('hide');
-                        setTimeout(() => failedBanner.classList.add('hide'), 10000);
+                        // Log a warning about the failed email verification
+                        logging.warning({
+                            message: `Email verification failed (${user.email}): ${data.message}. Redirecting to Resend Email Verification Link page.`,
+                            eventName: "email_verification_failed"
+                        });
+                        setTimeout(() => {
+                            redirectResendEmailVerification();
+                            failedBanner.classList.add('hide');
+                        }, 10000);
                     }
                 } else {
+                    failedText.textContent = "Email Verification failed. "+ data.message +". You will be redirected to the Resend Email Verification Link page shortly to try again.";
                     failedBanner.classList.remove('hide');
-                    setTimeout(() => failedBanner.classList.add('hide'), 10000);
+                    // Log a warning about the failed email verification
+                    logging.warning({
+                        message: `Email verification failed (${user.email}): ${data.message}. Redirecting to Resend Email Verification Link page.`,
+                        eventName: "email_verification_failed"
+                    });
+                    setTimeout(() => {
+                        redirectResendEmailVerification();
+                        failedBanner.classList.add('hide');
+                    }, 10000);
                 }
             } catch (error) {
                 logging.error({

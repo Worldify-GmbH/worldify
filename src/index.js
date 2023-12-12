@@ -13,6 +13,7 @@ import * as AccountSettings from './modules/pages/account/account_settings.js';
 import * as AccountPage from './modules/form_handling.js';
 import * as SendPasswordReset from './modules/pages/account/send_password_reset.js';
 import * as PasswordReset from './modules/pages/account/reset_password.js';
+import * as ResendEmailVerification from './modules/pages/account/send_email_verification_link.js';
 
 // Define routes for account-related pages
 const accountRoutes = {
@@ -20,7 +21,8 @@ const accountRoutes = {
     '/account/signup' : Signup.render,
     '/account/onboarding' : Onboarding.render,
     '/account/send-password-reset' : SendPasswordReset.render,
-    '/account/reset-password': PasswordReset.render
+    '/account/reset-password': PasswordReset.render,
+    '/account/resend-email-verification' : ResendEmailVerification.render
 }
 
 // Define routes for application-specific pages
@@ -29,16 +31,11 @@ const appRoutes = {
     '/app/account-settings' : AccountSettings.render,
     '/app/modules/visa' : Visa.render,
     '/app/modules/visa-modules/visa-finder' : VisaFinder.render,
-    '/app/modules/visa-modules/residence-permit-module/residence-permit-berlin' : UploadPage.render,
-    '/app/modules/visa-modules/residence-permit-module/residence-permit-munich' : UploadPage.render,
-    '/app/modules/visa-modules/blue-card-module/prepare-blue-card-application-berlin': UploadPage.render,
-    '/app/modules/visa-modules/blue-card-module/prepare-blue-card-application-munich': UploadPage.render,
-    '/app/modules/visa-modules/freelance-visa-module/prepare-freelance-visa-application-berlin': UploadPage.render,
-    '/app/modules/visa-modules/freelance-visa-module/prepare-freelance-visa-application-munich': UploadPage.render,
-    '/app/modules/visa-modules/jobseeker-visa-module/prepare-jobseeker-visa-application-berlin': UploadPage.render,
-    '/app/modules/visa-modules/jobseeker-visa-module/prepare-jobseeker-visa-application-munich': UploadPage.render,
-    '/app/modules/visa-modules/family-reunification-module/prepare-family-reunification-visa-application-berlin': UploadPage.render,
-    '/app/modules/visa-modules/family-reunification-module/prepare-family-reunification-visa-application-munich': UploadPage.render,
+    '/app/modules/visa-modules/residence-permit-module/prepare-residence-permit-application' : UploadPage.render,
+    '/app/modules/visa-modules/blue-card-module/prepare-blue-card-application': UploadPage.render,
+    '/app/modules/visa-modules/freelance-visa-module/prepare-freelance-visa-application': UploadPage.render,
+    '/app/modules/visa-modules/jobseeker-visa-module/prepare-jobseeker-visa-application': UploadPage.render,
+    '/app/modules/visa-modules/family-reunification-module/prepare-family-reunification-visa-application': UploadPage.render,
     '/app/modules/visa-modules/national-d-visa' : UploadPage.render,
     '/app/modules/health-insurance' : HealthInsurance.render,
     '/app/modules/health-insurance-modules/health-insurance-finder' : HealthInsuranceFinder.render

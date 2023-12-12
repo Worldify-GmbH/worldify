@@ -1,8 +1,8 @@
 import { getCookie } from "./auth";
 import { validFileType,returnFileSize,toSafeFileName,downloadFileFromUrl } from "./utils";
 
-export async function getDocuments() {
-  const submodule_id = document.querySelector('[w-el="submodule_id"]').value;
+export async function getDocuments(submodule_id) {
+  //const submodule_id = document.querySelector('[w-el="submodule_id"]').value;
   const wized_token = getCookie("wized_token");
   const token = "Bearer " + wized_token;
 
@@ -277,7 +277,7 @@ export function uploadedFileItem(doc, parentElement) {
 }
 
 
-export async function renderDocuments() {
+export async function renderDocuments(submodule_id) {
   try {
 
     // Select the parent element where the missing documents should be rendered
@@ -304,14 +304,13 @@ export async function renderDocuments() {
       }
     }
 
-  // Fetch the list of missing documents
-  const docs = await getDocuments();
-  console.log(docs);
+    // Fetch the list of missing documents
+    const docs = await getDocuments(submodule_id);
+    console.log(docs);
 
-  // Filter the data based on the document_uploaded field
-  const uploadedDocuments = docs.filter(item => item.document_uploaded === 1);
-  const notUploadedDocuments = docs.filter(item => item.document_uploaded === 0);
-
+    // Filter the data based on the document_uploaded field
+    const uploadedDocuments = docs.filter(item => item.document_uploaded === 1);
+    const notUploadedDocuments = docs.filter(item => item.document_uploaded === 0);
 
     if (notUploadedDocuments.length === 0) {
       const para = document.createElement('p');

@@ -30,6 +30,7 @@ module.exports = {
       BASE_URL: JSON.stringify(process.env.BASE_URL || 'https://xfa3-mghj-yd9n.n7c.xano.io/api:ghdeJJTr'),
       XANO_BASE: JSON.stringify(process.env.XANO_BASE || 'https://xfa3-mghj-yd9n.n7c.xano.io'),
       DOMAIN_URL: JSON.stringify(process.env.DOMAIN_URL || 'https://www.getworldify.com'),
+      //DOMAIN_URL: JSON.stringify(process.env.DOMAIN_URL || 'https://worldify.webflow.io'),
       'process.platform': JSON.stringify('browser')
     })
   ]

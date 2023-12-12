@@ -617,6 +617,7 @@ export const redirectToVerificationPending = () => redirectTo('/account/email-ve
 export const redirectToPasswordPending = () => redirectTo('/account/password-reset-pending');
 export const redirectVerifyEmail = () => redirectTo('/account/verify-email');
 export const redirectSendPasswordReset = () => redirectTo('/account/send-password-reset');
+export const redirectResendEmailVerification = () => redirectTo('/account/resend-email-verification');
 
 
 /**

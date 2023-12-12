@@ -13,6 +13,44 @@ export function getQueryParam(paramName) {
 }
 
 /**
+ * Sets a query parameter in the current URL.
+ * If the parameter already exists, its value is updated.
+ * If it does not exist, it is added.
+ *
+ * @param {string} paramName - The name of the query parameter.
+ * @param {string} paramValue - The value of the query parameter.
+ */
+export function setQueryParam(paramName, paramValue) {
+    // Check if the URL and URLSearchParams are supported
+    if (!window.URL || !window.URLSearchParams) {
+        logging.error({
+            message: 'URL manipulation is not supported in this browser:' + window.navigator.userAgent,
+            eventName: "setQueryParam_browser_support_error",
+            extra: {}
+        });
+        return;
+    }
+
+    try {
+        // Create a URL object based on the current location
+        const url = new URL(window.location.href);
+
+        // Update or add the query parameter
+        url.searchParams.set(paramName, paramValue);
+
+        // Update the current URL without reloading the page
+        window.history.pushState({}, '', url);
+
+    } catch (error) {
+        logging.error({
+            message: `Error in setting query parameter: ${error.message}. ${paramName} = ${paramValue}`,
+            eventName: "setQueryParam_exception",
+            extra: {}
+        });
+    }
+}
+
+/**
  * Reloads the current page.
  */
 export function reloadPage() {
