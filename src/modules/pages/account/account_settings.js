@@ -1,13 +1,13 @@
 import { getCookie, displayUser, redirectToLogin, resetPassword, emailReset, getAccountSettings, deleteCookie } from "../../auth";
 import { autoSaveFunction, debounce, fillFieldsFromDatabase, setupForm } from "../../form_handling";
-import { logging } from "../../utils";
-
+import { attachDatePicker, logging } from "../../utils";
 
 /**
  * Renders the page by fetching account settings and setting up forms for account management.
  */
 export async function render() {
     try {
+        attachDatePicker();
         const response = await getAccountSettings(getCookie('wized_token'));
 
         if (response.success) {

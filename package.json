@@ -21,8 +21,11 @@
     "webpack-dev-server": "^4.7.4"
   },
   "dependencies": {
+    "@eonasdan/tempus-dominus": "^6.9.4",
+    "@popperjs/core": "^2.11.8",
     "@typeform/embed": "^4.0.0",
     "@vercel/node": "^2.6.3",
+    "font-awesome": "^4.7.0",
     "jszip": "^3.10.1"
   }
 }

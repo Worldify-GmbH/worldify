@@ -1,4 +1,4 @@
-import { logging } from "./utils";
+import { handleLoaderRemoval, logging } from "./utils";
 export const TOKEN_KEY = 'wized_token';
 
 /**
@@ -557,6 +557,7 @@ export async function checkAuthentication() {
  * 
  * @param {Object} user - The user object containing first_name, last_name, and email.
  */
+/*
 export async function displayUser(user) {
     if (!user || typeof user !== 'object') {
         logging.error({
@@ -588,7 +589,47 @@ export async function displayUser(user) {
             });
         }
     });
+}*/
+
+/**
+ * Displays user details by updating the text content of elements with specific attributes.
+ * 
+ * @param {Object} user - The user object containing details to be displayed.
+ */
+export async function displayUser(user) {
+    if (!user || typeof user !== 'object') {
+        logging.error({
+            message: `displayUser: Invalid user object for user ID: ${user ? user.id : 'undefined'}`,
+            eventName: "displayUser_invalid_input",
+            extra: { user }
+        });
+        return;
+    }
+
+    const fields = [
+        { attribute: 'first_name', elements: document.querySelectorAll('[w-el="first_name"]') },
+        { attribute: 'last_name', elements: document.querySelectorAll('[w-el="last_name"]') },
+        { attribute: 'email', elements: document.querySelectorAll('[w-el="email"]') }
+    ];
+
+    fields.forEach(field => {
+        if (user[field.attribute] !== undefined) {
+            field.elements.forEach(element => {
+                element.textContent = user[field.attribute];
+                handleLoaderRemoval(element);
+            });
+        } else {
+            logging.warning({
+                message: `displayUser: Missing user attribute '${field.attribute}' for user ID: ${user.id}`,
+                eventName: "displayUser_missing_attribute",
+                extra: {}
+            });
+        }
+    });
 }
+
+
+
 
 /**
  * Redirects to a specified path on the domain.

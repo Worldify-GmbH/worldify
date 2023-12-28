@@ -14,6 +14,7 @@ import * as AccountPage from './modules/form_handling.js';
 import * as SendPasswordReset from './modules/pages/account/send_password_reset.js';
 import * as PasswordReset from './modules/pages/account/reset_password.js';
 import * as ResendEmailVerification from './modules/pages/account/send_email_verification_link.js';
+import '@eonasdan/tempus-dominus/dist/css/tempus-dominus.min.css';
 
 // Define routes for account-related pages
 const accountRoutes = {
@@ -44,7 +45,7 @@ const appRoutes = {
 
 // Function to initialize the application
 function initApp() {
-    displayLoader();
+    //displayLoader();
     const path = window.location.pathname;
     
     // Handle authentication and user display for app routes

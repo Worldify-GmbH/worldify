@@ -7,6 +7,8 @@ const { getCookie } = require("../../auth");
  */
 export async function render() {
     try {
+
+        //hideLoaders();
         // Render the dashboard contents
         await renderDashboard();
 
@@ -111,10 +113,7 @@ function createDashboardCard (module) {
       class="task_header-wrapper w-inline-block"
       ><h3 w-el="module_title" class="heading-style-h6">${module.module_title}</h3>
       <div class="spacer-small"></div>
-      <p class="text-size-small">
-        ${module.module_description}
-      </p></a
-    >
+    </a>
   </div>
 </div>
 `;
@@ -221,11 +220,6 @@ async function renderDashboard() {
             '1-3 months in Germany': document.querySelector('[w-el="1_3_months_list"]')
         };
 
-        // Clear all lists before fetching new module data
-        Object.keys(categoryLists).forEach(category => {
-            clearList(categoryLists[category]);
-        });
-
         // Fetch module data
         const data = await getModules();
         if (!data) {
@@ -235,6 +229,11 @@ async function renderDashboard() {
             });
             return;
         }
+
+        // Clear all lists before fetching new module data
+        Object.keys(categoryLists).forEach(category => {
+            clearList(categoryLists[category]);
+        });
 
         // Populate each list with filtered and sorted module data
         Object.keys(categoryLists).forEach(category => {
@@ -302,5 +301,36 @@ function setupModuleListEventListener() {
                 }
             }
         }
+    });
+}
+
+function hideLoaders() {
+    
+    const skeletonElements = document.querySelectorAll('[loader-skeleton]');
+
+    console.log(skeletonElements);
+        
+    skeletonElements.forEach(element => {
+        // Create a skeleton div
+        const skeletonDiv = document.createElement('div');
+        skeletonDiv.classList.add('skeleton-loader');
+    
+        // Add the skeleton div to the current element
+        element.style.position = 'relative';
+        element.appendChild(skeletonDiv);
+    
+        // Get delay from the attribute
+        let delay = element.getAttribute('loader-skeleton');
+    
+        // If attribute value is not a number, set default delay as 2000ms
+        if (isNaN(delay)) {
+        delay = 2000;
+        }
+    
+        setTimeout(() => {
+        // Remove the skeleton loader div after delay
+        const skeletonDiv = element.querySelector('.skeleton-loader');
+        element.removeChild(skeletonDiv);
+        }, delay);
     });
 }

@@ -1,6 +1,9 @@
 import { getCookie } from "./auth";
 import { getDocuments } from "./upload_files";
 import * as JSZip from "jszip";
+import { TempusDominus } from '@eonasdan/tempus-dominus';
+
+
 
 /**
  * Retrieves the value of a query parameter from the current URL.
@@ -583,6 +586,7 @@ export const logging = {
     }
 };
 
+/*
 export function attachDatePicker() {
     const datepickerElements = document.querySelectorAll('.datepicker');
 
@@ -599,4 +603,60 @@ export function attachDatePicker() {
         });
     });
 
+}*/
+
+export function attachDatePicker() {
+    const datepickerElements = document.querySelectorAll('.datepicker');
+
+    datepickerElements.forEach(element => {
+        new TempusDominus(element, {
+            display: {
+                components: {
+                    decades: false,
+                    year: true,
+                    month: true,
+                    date: true,
+                    hours: false,
+                    minutes: false,
+                    seconds: false
+                }
+            },
+            localization: {
+                format: 'yyyy-MM-dd'
+            }
+        });
+    });
 }
+
+/**
+ * Handles the removal of loader elements from a specified ancestor of a given element.
+ * 
+ * @param {Element} element - The reference element to start the search from.
+ * @param {string} loaderClass - The CSS class of the loader elements to remove.
+ * @param {string} parentAttribute - The attribute of the parent element where loaders are located.
+ * @param {number} levelLimit - The maximum number of levels to search for the parent element.
+ */
+export function handleLoaderRemoval(element, loaderClass = '.skeleton-loader', parentAttribute = '[w-el="loader-parent"]', levelLimit = 4) {
+    const loaderParent = element.closest(parentAttribute);
+    if (loaderParent) {
+        const loaders = loaderParent.querySelectorAll(loaderClass);
+        loaders.forEach(loader => setTimeout(() => loader.remove(), 500));
+
+        // Log successful removal of loaders
+        logging.info({
+            message: "handleLoaderRemoval: Loaders removed successfully",
+            eventName: "handleLoaderRemoval_success",
+            extra: { loaderClass, parentAttribute, levelLimit }
+        });
+    } else {
+        // Log if the loader's parent element is not found
+        logging.warning({
+            message: "handleLoaderRemoval: Loader parent not found.",
+            eventName: "handleLoaderRemoval_parent_not_found",
+            extra: {}
+        });
+    }
+}
+
+
+
