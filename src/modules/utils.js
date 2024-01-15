@@ -282,7 +282,7 @@ async function downloadFilesAsZip(data, zipName = 'download.zip') {
  */
 export async function downloadAllFilesSubmodule() {
     try {
-        const files = await getDocuments();
+        const files = await getDocuments(getQueryParam("submoduleId"));
 
         // Ensure that files are received and not empty
         if (!Array.isArray(files) || files.length === 0) {
@@ -636,22 +636,16 @@ export function attachDatePicker() {
  * @param {string} parentAttribute - The attribute of the parent element where loaders are located.
  * @param {number} levelLimit - The maximum number of levels to search for the parent element.
  */
-export function handleLoaderRemoval(element, loaderClass = '.skeleton-loader', parentAttribute = '[w-el="loader-parent"]', levelLimit = 4) {
+export function handleLoaderRemoval(element, loaderClass = '.skeleton-loader', parentAttribute = '[w-el="loader-parent"]') {
     const loaderParent = element.closest(parentAttribute);
     if (loaderParent) {
         const loaders = loaderParent.querySelectorAll(loaderClass);
         loaders.forEach(loader => setTimeout(() => loader.remove(), 500));
 
-        // Log successful removal of loaders
-        logging.info({
-            message: "handleLoaderRemoval: Loaders removed successfully",
-            eventName: "handleLoaderRemoval_success",
-            extra: { loaderClass, parentAttribute, levelLimit }
-        });
     } else {
         // Log if the loader's parent element is not found
         logging.warning({
-            message: "handleLoaderRemoval: Loader parent not found.",
+            message: "handleLoaderRemoval: Loader parent not found for element " + element,
             eventName: "handleLoaderRemoval_parent_not_found",
             extra: {}
         });

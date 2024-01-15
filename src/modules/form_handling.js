@@ -33,9 +33,9 @@ export function setupForm(formId, onSubmitCustom, submitFormData, responseHandle
         handleButtonState(submitButton, true);
 
         try {
-            const customData = onSubmitCustom(new FormData(formElement));
+            const customData = onSubmitCustom(new FormData(formElement),event);
             const response = await submitFormData(customData);
-            handleFormResponse(formElement, response,show_success);
+            handleFormResponse(formElement, response, show_success);
 
             if (responseHandler) {
                 await responseHandler(response);
@@ -75,6 +75,8 @@ function handleButtonState(button, isLoading) {
  * @param {string} formType - A string representing the type of form (e.g., 'Email', 'Password').
  */
 function handleFormResponse(formElement, response, formType,show_success) {
+
+    //console.log("handleFormResponse: ", formElement,show_success, response)
     // Validate if the form element is an HTMLFormElement
     if (!(formElement instanceof HTMLFormElement)) {
         logging.error({
@@ -302,11 +304,13 @@ export function fillFieldsFromDatabase(data, prefix = '') {
             if (inputField) {
                 inputField.value = value;
             } else {
+                /*
                 logging.warning({
                     message: `Input field not found for key: ${prefix}${key}`,
                     eventName: "fillFieldsFromDatabase_field_not_found",
                     extra: {}
                 });
+                */
             }
         } else {
             // If value is an object, recursively call the function with concatenated key

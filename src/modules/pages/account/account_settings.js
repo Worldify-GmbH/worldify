@@ -31,8 +31,8 @@ export async function render() {
             return;
         }
 
-        const emailResponse = setupForm('account_change_mail', transformEmailFormData, emailReset,logoutAndRedirect);      
-        const passwordResponse = setupForm('account_change_password', transformPasswordFormData, resetPassword,logoutAndRedirect);
+        const emailResponse = setupForm('account_change_mail', transformEmailFormData, emailReset,logoutAndRedirectEmail);      
+        const passwordResponse = setupForm('account_change_password', transformPasswordFormData, resetPassword,logoutAndRedirectPassword);
 
     } catch (error) {
         logging.error({
@@ -43,14 +43,43 @@ export async function render() {
     }
 }
 
-async function logoutAndRedirect(response){
+async function logoutAndRedirectEmail(response){
+
+    const formElement = document.getElementById('account_change_mail');
+
+    const successDiv = formElement.parentNode.querySelector('[w-el="form_success"]');
+
     // Handling the response specifically for email reset
     if (response.success) {
-        displayUser(response.user);
-        setTimeout(() => {
-            deleteCookie('wized_token');
-            redirectToLogin();
-        }, 4500);
+        formElement.reset();
+        formElement.classList.add('hide');
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+                formElement.classList.remove('hide');
+                deleteCookie('wized_token');
+                redirectToLogin();
+            }, 5000);
+    }
+}
+
+async function logoutAndRedirectPassword(response){
+
+    const formElement = document.getElementById('account_change_password');
+
+    const successDiv = formElement.parentNode.querySelector('[w-el="form_success"]');
+
+    // Handling the response specifically for email reset
+    if (response.success) {
+        formElement.reset();
+        formElement.classList.add('hide');
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+                formElement.classList.remove('hide');
+                deleteCookie('wized_token');
+                redirectToLogin();
+            }, 5000);
     }
 }
 
