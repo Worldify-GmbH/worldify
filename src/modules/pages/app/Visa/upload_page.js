@@ -1,9 +1,8 @@
 //import { renderDocuments, handleUploadedDocuments, handleFileInputChange, handleUpload }
 import { getCookie, displayUser, redirectToLogin, resetPassword, emailReset, getAccountSettings, deleteCookie } from "../../../auth.js";
 import { autoSaveFunction, debounce, fillFieldsFromDatabase, setupForm } from "../../../form_handling";
-import { handleFileInputChange, handleUpload, handleUploadedDocuments, hideFilePreview, renderDocuments } from "../../../upload_files.js";
+import { handleDocuments, handleFileInputChange, handleUpload, hideFilePreview, renderDocuments } from "../../../upload_files.js";
 import { logging,downloadAllFilesSubmodule, setQueryParam, getQueryParam, reloadPage } from  "../../../utils.js";
-
 
 /**
  * Renders the upload page for visa modules, including document lists and form settings.
@@ -54,21 +53,7 @@ export async function render() {
         }
         
         await renderDocuments(submoduleId);
-        handleUploadedDocuments();
-        
-        const missing_documents_list = document.querySelector('[w-el="document_missing_list"]');
-        missing_documents_list.addEventListener('change', (event) => {
-            handleFileInputChange(event);
-        });
-        missing_documents_list.addEventListener('click', (event) => {
-            hideFilePreview(event);
-        });
-
-        //setup upload forms
-        setupAllForms();
-        
-        const downloadAllButton = document.querySelector('[w-el="document_uploaded_downloadAll"]');
-        downloadAllButton.addEventListener('click', downloadAllFilesSubmodule);
+        handleDocuments();
 
     } catch (error) {
         logging.error({
@@ -124,103 +109,6 @@ function setCityNameInElements(cityName) {
     elements.forEach(element => {
         element.textContent = cityName;
     });
-}
-
-function setupAllForms() {
-
-    // Select the container with all the forms
-    const uploadListWrapper = document.querySelector('[w-el="document_missing_list"]');
-
-    // Iterate over each form within the container
-    uploadListWrapper.querySelectorAll('.upload_component').forEach(form => {
-        // Extract the form's ID
-        const formId = form.id;
-
-        // Call your function with the form's ID and other parameters
-        setupForm(formId, transformUploadFormData, submitDocumentFormData,handleDocumentUploadResponse,true);
-    });
-}
-
-/**
- * Transforms the form data for submission.
- * 
- * @param {FormData} formData - The original form data.
- * @returns {FormData} - Transformed formData with the file, document title, document id and submodule id.
- */
-function transformUploadFormData(formData,event) {
-
-    const form = event.target;
-
-    const fileInput = form.querySelector('.input_files');
-    const file = fileInput.files[0];
-
-    const documentTitle = form.querySelector(
-        '[w-el="document_missing_fileName"]'
-      ).textContent;
-        
-
-    // Extract document and submodule IDs
-    const documentId = parseInt(form.getAttribute("form-id"));
-    const submoduleId = parseInt(getQueryParam("submoduleId"));
-
-    // Create formData and append relevant information
-    const resultFormData = new FormData();
-    resultFormData.append("document_title", documentTitle);
-    resultFormData.append("document_id", documentId);
-    resultFormData.append("submodules_id", submoduleId);
-    resultFormData.append("file", file);
-
-    return resultFormData;
-}
-
-/**
- * Submits form data for a document upload to the server.
- * Sends a POST request with the provided formData and handles the server response.
- * 
- * @param {FormData} formData - The form data to be submitted for document upload.
- * @returns {Promise<Object>} - An object indicating the success status and message of the operation.
- */
-async function submitDocumentFormData(formData) {
-    try {
-        const token = 'Bearer ' + getCookie("wized_token");
-        const response = await fetch(BASE_URL + "/documents", {
-            method: "POST",
-            headers: { Authorization: token },
-            body: formData,
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            return { success: true, message: "The document was successfully uploaded." };
-        } else {
-            const errorMessage = data.message || 'Unknown error during document upload';
-            logging.error({
-                message: `Document upload failed: ${errorMessage}`,
-                eventName: "documentUpload_failed"
-            });
-            return { success: false, message: errorMessage };
-        }
-    } catch (error) {
-        logging.error({
-            message: "Error in document upload: " + error.message,
-            eventName: "documentUpload_exception"
-        });
-        return { success: false, message: error.message || "Error occurred while uploading the document." };
-    }
-}
-
-function handleDocumentUploadResponse(response){
-
-    if (response.success) {
-        setTimeout(reloadPage,1000);
-    } else {
-        logging.warning({
-            message: "Document upload failed: " + response.message,
-            eventName: "documentUpload_failed",
-            extra: {}
-        });
-    }
 }
 
 
