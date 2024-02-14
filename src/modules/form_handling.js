@@ -46,7 +46,6 @@ export function setupForm(formId, onSubmitCustom, submitFormData, responseHandle
                 eventName: "form_submission_error",
                 extra: {}
             });
-            console.log(error)
         } finally {
             // Restore the submit button to its initial state
             handleButtonState(submitButton, false);

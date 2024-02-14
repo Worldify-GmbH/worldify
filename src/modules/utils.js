@@ -294,6 +294,7 @@ export async function downloadAllFilesSubmodule() {
 
         // Check if there are any uploaded documents
         if (uploadedDocuments.length === 0) {
+            alert("You have not uploaded any documents for this module yet.");
             throw new Error("No uploaded documents found.");
         }
 

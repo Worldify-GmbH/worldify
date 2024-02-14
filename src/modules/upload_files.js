@@ -222,7 +222,7 @@ export async function renderDocuments(submodule_id) {
       heading.textContent = "Relocation Support for Other Cities";
       const para = document.createElement("p");
       para.textContent =
-        "Currently, we only offer tailored support for the cities of Berlin and Munich. If you are considering relocating to a different city in Germany, please note that specific assistance might be limited. We're constantly working to expand our services to more locations. Thank you for your understanding!";
+        "Currently, we only offer tailored support for the cities of Berlin and Munich. If you consider relocating to a different city in Germany, please note that specific assistance might be limited. We're constantly working to expand our services to more locations. Thank you for your understanding!";
 
       uploadElement.appendChild(heading);
       uploadElement.appendChild(para);

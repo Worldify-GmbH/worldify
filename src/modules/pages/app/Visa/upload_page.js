@@ -55,6 +55,9 @@ export async function render() {
         await renderDocuments(submoduleId);
         handleDocuments();
 
+        const downloadAllButton = document.querySelector('[w-el="document_uploaded_downloadAll"]');
+        downloadAllButton.addEventListener('click', downloadAllFilesSubmodule);
+
     } catch (error) {
         logging.error({
             message: 'Error in render function: ' + error.message,
