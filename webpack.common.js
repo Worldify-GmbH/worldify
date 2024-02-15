@@ -32,6 +32,7 @@ module.exports = {
       DOMAIN_URL: JSON.stringify(process.env.DOMAIN_URL || 'https://www.getworldify.com'),
       //DOMAIN_URL: JSON.stringify(process.env.DOMAIN_URL || 'https://worldify.webflow.io'),
       'process.platform': JSON.stringify('browser')
-    })
+    }),
+    new webpack.optimize.SplitChunksPlugin()
   ]
 };
