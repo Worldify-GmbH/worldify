@@ -226,13 +226,8 @@ function loaderElement(parentElement) {
  *
  * @param {string} submodule_id - The ID of the submodule for which documents are to be rendered.
  */
-export async function renderDocuments(submodule_id) {
+export async function updateDocuments(parentElementDocumentList,submodule_id) {
   try {
-
-    // Select the parent elements for document rendering
-    const parentElementDocumentList = document.querySelector(
-      '[w-el="document_list"]'
-    );
 
     if (submodule_id === null) {
 
@@ -305,12 +300,8 @@ export async function renderDocuments(submodule_id) {
  * Attaches an event handler to the list of uploaded documents for handling various document-related actions.
  * This function delegates click events to the appropriate handler based on the action (download, delete, etc.).
  */
-export async function handleDocuments() {
+export async function handleDocuments(documentsList) {
 
-  // Select the parent elements for document rendering
-  const documentsList = document.querySelector(
-    '[w-el="document_list"]'
-  );
 
   // handle all click events on the document list 
   // for the uploaded documents, handle the see, download and delete functions
@@ -427,8 +418,12 @@ async function handleDeleteConfirm(parentLink) {
   });
 
   if (response.ok) {
-    const formWrapper = document.querySelector('[w-el="formWrapper"]');
-    updateDocuments(formWrapper);
+    // Select the parent elements for document rendering
+    const parentElementDocumentList = document.querySelector(
+      '[w-el="document_list"]'
+    );
+    const submoduleId = updateVisaRelocationCity();
+    updateDocuments(parentElementDocumentList, submoduleId);
   } else {
     await logging.error({
       message: `Delete failed: ${response.statusText}`,
@@ -592,8 +587,12 @@ async function submitDocumentFormData(formData) {
 function handleDocumentUploadResponse(response){
 
   if (response.success) {
-    const formWrapper = document.querySelector('[w-el="formWrapper"]');
-    updateDocuments(formWrapper);
+    // Select the parent elements for document rendering
+    const parentElementDocumentList = document.querySelector(
+      '[w-el="document_list"]'
+    );
+    const submoduleId = updateVisaRelocationCity();
+    updateDocuments(parentElementDocumentList, submoduleId);
   } else {
       logging.warning({
           message: "Document upload failed: " + response.message,
@@ -615,26 +614,22 @@ function setupAllForms(listWrapper) {
   });
 }
 
-export async function updateDocuments(formWrapper){
-  try {
-      let submoduleId = null;
+export function updateVisaRelocationCity(){
+
+  const formWrapper = document.querySelector('[w-el="formWrapper"]')
+
+  let submoduleId = null;
       var visaType = formWrapper.getAttribute('visatype');
       var relocationCity = document.getElementById('account_relocation_city_germany').value;
       if (relocationCity && visaType) {
           submoduleId = getModuleId(visaType,relocationCity);
           setCityNameInElements(relocationCity);
           setQueryParam('submoduleId',submoduleId);
-          await renderDocuments(submoduleId);
-          const downloadAllButton = document.querySelector('[w-el="document_uploaded_downloadAll"]');
-          if (downloadAllButton){downloadAllButton.addEventListener('click', downloadAllFilesSubmodule)};
+          return submoduleId;
+      } else {
+        return null;
       }
-  } catch (error){
-      logging.error({
-          message: 'Error while updating documents: ' + error.message,
-          eventName: 'render_exception',
-          extra: {}
-      });
-  }
+
 }
 
 /**

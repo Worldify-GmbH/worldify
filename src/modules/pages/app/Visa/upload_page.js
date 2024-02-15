@@ -1,7 +1,7 @@
 //import { renderDocuments, handleUploadedDocuments, handleFileInputChange, handleUpload }
 import { getCookie, displayUser, redirectToLogin, resetPassword, emailReset, getAccountSettings, deleteCookie } from "../../../auth.js";
 import { autoSaveFunction, debounce, fillFieldsFromDatabase, setupForm } from "../../../form_handling";
-import { handleDocuments, handleFileInputChange, handleUpload, hideFilePreview, renderDocuments, updateDocuments } from "../../../upload_files.js";
+import { handleDocuments, handleFileInputChange, handleUpload, hideFilePreview, renderDocuments, updateDocuments, updateVisaRelocationCity } from "../../../upload_files.js";
 import { logging,downloadAllFilesSubmodule, setQueryParam, getQueryParam, reloadPage } from  "../../../utils.js";
 
 /**
@@ -11,6 +11,12 @@ import { logging,downloadAllFilesSubmodule, setQueryParam, getQueryParam, reload
 export async function render() {
 
     try {
+
+        // Select the parent elements for document rendering
+        const parentElementDocumentList = document.querySelector(
+            '[w-el="document_list"]'
+          );
+
         const response = await getAccountSettings(getCookie('wized_token'));
 
         if (response.success) {
@@ -21,7 +27,8 @@ export async function render() {
             if (formWrapper) {
                 formWrapper.addEventListener('change', async function (event) {
                     autoSaveFunction(event, `${BASE_URL}/account_settings`);
-                    updateDocuments(formWrapper);
+                    const submoduleId = updateVisaRelocationCity();
+                    updateDocuments(parentElementDocumentList, submoduleId);
                 });
 
             } else {
@@ -30,8 +37,13 @@ export async function render() {
                     eventName: 'render_no_formWrapper',
                 });
             }
-            updateDocuments(formWrapper);
-            handleDocuments();
+            const submoduleId = updateVisaRelocationCity();
+            updateDocuments(parentElementDocumentList, submoduleId);
+            handleDocuments(parentElementDocumentList);
+            const downloadAllButton = document.querySelector('[w-el="document_uploaded_downloadAll"]');
+            if (downloadAllButton){downloadAllButton.addEventListener('click', function () {
+                downloadAllFilesSubmodule(submoduleId);
+            })};
         } else {
             logging.error({
                 message: 'render: Failed to fetch account settings: ' + response.message,

@@ -280,9 +280,9 @@ async function downloadFilesAsZip(data, zipName = 'download.zip') {
  * The function assumes that each document object contains 'document_uploaded'
  * and 'submodule_title' properties.
  */
-export async function downloadAllFilesSubmodule() {
+export async function downloadAllFilesSubmodule(submoduleId) {
     try {
-        const files = await getDocuments(getQueryParam("submoduleId"));
+        const files = await getDocuments(submoduleId);
 
         // Ensure that files are received and not empty
         if (!Array.isArray(files) || files.length === 0) {
