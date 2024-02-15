@@ -1,45 +1,30 @@
 import {checkAuthentication, displayUser, setupLogout} from './modules/auth.js';
-import { displayLoader, logging } from './modules/utils.js';
-import * as Login from './modules/pages/account/login.js';
-import * as Signup from './modules/pages/account/signup.js';
-import * as Onboarding from './modules/pages/account/onboarding.js';
-import * as Dashboard from './modules/pages/app/dashboard.js';
-import * as Visa from './modules/pages/app/Visa/visa.js';
-import * as VisaFinder from './modules/pages/app/Visa/visa_finder.js';
-import * as UploadPage from './modules/pages/app/Visa/upload_page.js';
-import * as HealthInsurance from './modules/pages/app/Health_Insurance/health_insurance.js';
-import * as HealthInsuranceFinder from './modules/pages/app/Health_Insurance/health_insurance_finder.js';
-import * as AccountSettings from './modules/pages/account/account_settings.js';
-import * as AccountPage from './modules/form_handling.js';
-import * as SendPasswordReset from './modules/pages/account/send_password_reset.js';
-import * as PasswordReset from './modules/pages/account/reset_password.js';
-import * as ResendEmailVerification from './modules/pages/account/send_email_verification_link.js';
 import '@eonasdan/tempus-dominus/dist/css/tempus-dominus.min.css';
 
 // Define routes for account-related pages
 const accountRoutes = {
-    '/account/login' : Login.render,
-    '/account/signup' : Signup.render,
-    '/account/onboarding' : Onboarding.render,
-    '/account/send-password-reset' : SendPasswordReset.render,
-    '/account/reset-password': PasswordReset.render,
-    '/account/resend-email-verification' : ResendEmailVerification.render
+    '/account/login' : () => import('./modules/pages/account/login.js').then(module => module.render()),
+    '/account/signup' : () => import('./modules/pages/account/signup.js').then(module => module.render()),
+    '/account/onboarding' : () => import('./modules/pages/account/onboarding.js').then(module => module.render()),
+    '/account/send-password-reset' : () => import('./modules/pages/account/send_password_reset.js').then(module => module.render()),
+    '/account/reset-password': () => import('./modules/pages/account/reset_password.js').then(module => module.render()),
+    '/account/resend-email-verification' : () => import('./modules/pages/account/send_email_verification_link.js').then(module => module.render())
 }
 
 // Define routes for application-specific pages
 const appRoutes = {
-    '/app/dashboard' : Dashboard.render,
-    '/app/account-settings' : AccountSettings.render,
-    '/app/modules/visa' : Visa.render,
-    '/app/modules/visa-modules/visa-finder' : VisaFinder.render,
-    '/app/modules/visa-modules/residence-permit-module/prepare-residence-permit-application' : UploadPage.render,
-    '/app/modules/visa-modules/blue-card-module/prepare-blue-card-application': UploadPage.render,
-    '/app/modules/visa-modules/freelance-visa-module/prepare-freelance-visa-application': UploadPage.render,
-    '/app/modules/visa-modules/jobseeker-visa-module/prepare-jobseeker-visa-application': UploadPage.render,
-    '/app/modules/visa-modules/family-reunification-module/prepare-family-reunification-visa-application': UploadPage.render,
-    '/app/modules/visa-modules/national-d-visa' : UploadPage.render,
-    '/app/modules/health-insurance' : HealthInsurance.render,
-    '/app/modules/health-insurance-modules/health-insurance-finder' : HealthInsuranceFinder.render
+    '/app/dashboard' : () => import('./modules/pages/app/dashboard.js').then(module => module.render()),
+    '/app/account-settings' : () => import('./modules/pages/account/account_settings.js').then(module => module.render()),
+    '/app/modules/visa' : () => import('./modules/pages/app/Visa/visa.js').then(module => module.render()),
+    '/app/modules/visa-modules/visa-finder' : () => import('./modules/pages/app/Visa/visa_finder.js').then(module => module.render()),
+    '/app/modules/visa-modules/residence-permit-module/prepare-residence-permit-application' : () => import('./modules/pages/app/Visa/upload_page.js').then(module => module.render()),
+    '/app/modules/visa-modules/blue-card-module/prepare-blue-card-application': () => import('./modules/pages/app/Visa/upload_page.js').then(module => module.render()),
+    '/app/modules/visa-modules/freelance-visa-module/prepare-freelance-visa-application': () => import('./modules/pages/app/Visa/upload_page.js').then(module => module.render()),
+    '/app/modules/visa-modules/jobseeker-visa-module/prepare-jobseeker-visa-application': () => import('./modules/pages/app/Visa/upload_page.js').then(module => module.render()),
+    '/app/modules/visa-modules/family-reunification-module/prepare-family-reunification-visa-application': () => import('./modules/pages/app/Visa/upload_page.js').then(module => module.render()),
+    '/app/modules/visa-modules/national-d-visa' : () => import('./modules/pages/app/Visa/upload_page.js').then(module => module.render()),
+    '/app/modules/health-insurance' : () => import('./modules/pages/app/Health_Insurance/health_insurance.js').then(module => module.render()),
+    '/app/modules/health-insurance-modules/health-insurance-finder' : () => import('./modules/pages/app/Health_Insurance/health_insurance_finder.js').then(module => module.render())
 
 }
 
@@ -47,6 +32,8 @@ const appRoutes = {
 function initApp() {
     //displayLoader();
     const path = window.location.pathname;
+
+    console.log(DOMAIN_URL);
     
     // Handle authentication and user display for app routes
     if (path.startsWith('/app/')) {
