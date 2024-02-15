@@ -15,6 +15,7 @@ const accountRoutes = {
 const appRoutes = {
     '/app/dashboard' : () => import('./modules/pages/app/dashboard.js').then(module => module.render()),
     '/app/account-settings' : () => import('./modules/pages/account/account_settings.js').then(module => module.render()),
+    '/app/document-vault': () => import('./modules/pages/app/vault.js').then(module => module.render()),
     '/app/modules/visa' : () => import('./modules/pages/app/Visa/visa.js').then(module => module.render()),
     '/app/modules/visa-modules/visa-finder' : () => import('./modules/pages/app/Visa/visa_finder.js').then(module => module.render()),
     '/app/modules/visa-modules/residence-permit-module/prepare-residence-permit-application' : () => import('./modules/pages/app/Visa/upload_page.js').then(module => module.render()),
