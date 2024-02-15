@@ -251,7 +251,6 @@ export async function renderDocuments(submodule_id) {
     });
 
   } catch (error) {
-    console.log(error)
     logging.error({
       message: `Error while rendering documents: ${error.message}`,
       eventName: "renderDocuments_exception",
@@ -277,12 +276,9 @@ export async function handleDocuments() {
     // identify if the event target is an uploaded document or not uploaded document
     const isUploadedDocument = event.target.closest(".download_component") !== null;
 
-    console.log("isUploadedDocument:" + isUploadedDocument)
-
     if (isUploadedDocument) {
       const parentLink = event.target.closest("a");
 
-      console.log(parentLink);
       if (!parentLink) return;
 
       try {
@@ -500,8 +496,6 @@ function transformUploadFormData(formData,event) {
   // Extract document and submodule IDs
   const documentId = parseInt(form.getAttribute("form-id"));
   const submoduleId = parseInt(getQueryParam("submoduleId"));
-
-  console.log(documentId,submoduleId)
 
   // Create formData and append relevant information
   const resultFormData = new FormData();
