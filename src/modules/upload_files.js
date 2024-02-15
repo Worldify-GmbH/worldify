@@ -9,6 +9,10 @@ import {
   reloadPage,
   logging,
   getQueryParam,
+  hasChildWithClass,
+  hasChildWithSelector,
+  setQueryParam,
+  downloadAllFilesSubmodule,
 } from "./utils";
 
 /**
@@ -69,7 +73,7 @@ export async function getDocuments(submodule_id) {
  * @param {Object} doc - An object containing the document metadata. It should have an 'id' and 'document_title' property.
  * @param {HTMLElement} parentElement - The parent DOM element to which the constructed HTML will be appended.
  */
-function missingFileItem(doc, parentElement) {
+function missingFileItem(doc) {
   var is_required = "";
 
   if (doc.status === "mandatory") {
@@ -126,8 +130,7 @@ function missingFileItem(doc, parentElement) {
       </div>
     </div>
   `;
-
-  parentElement.insertAdjacentHTML("beforeend", html);
+  return html;
 }
 
 /**
@@ -136,7 +139,7 @@ function missingFileItem(doc, parentElement) {
  * @param {Object} doc - An object containing the document metadata. It should have an 'id' and 'document_title' property.
  * @param {HTMLElement} parentElement - The parent DOM element to which the constructed HTML will be appended.
  */
-export function uploadedFileItem(doc, parentElement) {
+export function uploadedFileItem(doc) {
   const file = doc.attachment;
   const url = "https://xfa3-mghj-yd9n.n7c.xano.io" + file.path;
 
@@ -199,8 +202,21 @@ export function uploadedFileItem(doc, parentElement) {
       </div>
    </div>
 </div>`;
+  return html;
+}
+
+function loaderElement(parentElement) {
+
+  const html = `
+  <div class="loader_form">
+    <div class="file-skeleton-wrapper">
+      <div class="skeleton-loader"></div>
+    </div>
+  </div>
+  `;
 
   parentElement.insertAdjacentHTML("beforeend", html);
+
 }
 
 /**
@@ -212,11 +228,16 @@ export function uploadedFileItem(doc, parentElement) {
  */
 export async function renderDocuments(submodule_id) {
   try {
-    if (submodule_id === null) {
-      const uploadElement = document.querySelector(".section_upload");
 
-      while (uploadElement.firstChild) {
-        uploadElement.removeChild(uploadElement.lastChild);
+    // Select the parent elements for document rendering
+    const parentElementDocumentList = document.querySelector(
+      '[w-el="document_list"]'
+    );
+
+    if (submodule_id === null) {
+
+      while (parentElementDocumentList.firstChild) {
+        parentElementDocumentList.removeChild(parentElementDocumentList.lastChild);
       }
       const heading = document.createElement("h2");
       heading.textContent = "Relocation Support for Other Cities";
@@ -224,31 +245,54 @@ export async function renderDocuments(submodule_id) {
       para.textContent =
         "Currently, we only offer tailored support for the cities of Berlin and Munich. If you consider relocating to a different city in Germany, please note that specific assistance might be limited. We're constantly working to expand our services to more locations. Thank you for your understanding!";
 
-      uploadElement.appendChild(heading);
-      uploadElement.appendChild(para);
+      parentElementDocumentList.appendChild(heading);
+      parentElementDocumentList.appendChild(para);
+      return;
     }
-    // Fetch the list of documents
+
+    
+
+    // 1. If documents exist, remove current documents
+    if (hasChildWithSelector(parentElementDocumentList,".upload_form") || hasChildWithSelector(parentElementDocumentList,".download_component")){
+      while (parentElementDocumentList.firstChild){
+        parentElementDocumentList.removeChild(parentElementDocumentList.firstChild);
+      }
+    }
+    
+    // 2. If no loaders exist, add loaders
+    if (!hasChildWithSelector(parentElementDocumentList,".loader_form")){
+      for (let i = 0; i < 10; i++){
+        loaderElement(parentElementDocumentList);
+      }
+    }
+
+    // 3. Fetch documents and append to a list
     const docs = await getDocuments(submodule_id);
     if (!docs) {
       throw new Error("Failed to retrieve documents.");
     }
 
-    // Select the parent elements for document rendering
-    const parentElementDocumentList = document.querySelector(
-      '[w-el="document_list"]'
-    );
+    const docList = []
 
-    // Remove loader elements if present
-    handleLoaderRemoval(parentElementDocumentList, ".loader_form");
-
-    // Render each missing document in the parent element
     docs.forEach((doc) => {
       if (doc.document_uploaded === 0) {
-        missingFileItem(doc, parentElementDocumentList);
+        docList.push(missingFileItem(doc));
       } else {
-        uploadedFileItem(doc, parentElementDocumentList);
+        docList.push(uploadedFileItem(doc));
       }
     });
+
+    // 4. Remove loaders and add the new documents
+    handleLoaderRemoval(parentElementDocumentList, ".loader_form");
+    if(hasChildWithSelector(parentElementDocumentList,"h2")){
+      parentElementDocumentList.querySelector("h2").remove();
+      parentElementDocumentList.querySelector("p").remove();
+    }
+    docList.forEach(item => parentElementDocumentList.insertAdjacentHTML("beforeend", item));
+
+    // 5. Setup all forms
+    setupAllForms(parentElementDocumentList);
+
 
   } catch (error) {
     logging.error({
@@ -262,11 +306,11 @@ export async function renderDocuments(submodule_id) {
  * This function delegates click events to the appropriate handler based on the action (download, delete, etc.).
  */
 export async function handleDocuments() {
+
+  // Select the parent elements for document rendering
   const documentsList = document.querySelector(
     '[w-el="document_list"]'
   );
-
-  setupAllForms(documentsList);
 
   // handle all click events on the document list 
   // for the uploaded documents, handle the see, download and delete functions
@@ -383,7 +427,8 @@ async function handleDeleteConfirm(parentLink) {
   });
 
   if (response.ok) {
-    setTimeout(reloadPage, 500);
+    const formWrapper = document.querySelector('[w-el="formWrapper"]');
+    updateDocuments(formWrapper);
   } else {
     await logging.error({
       message: `Delete failed: ${response.statusText}`,
@@ -547,7 +592,8 @@ async function submitDocumentFormData(formData) {
 function handleDocumentUploadResponse(response){
 
   if (response.success) {
-      setTimeout(reloadPage,1000);
+    const formWrapper = document.querySelector('[w-el="formWrapper"]');
+    updateDocuments(formWrapper);
   } else {
       logging.warning({
           message: "Document upload failed: " + response.message,
@@ -566,5 +612,74 @@ function setupAllForms(listWrapper) {
 
       // Call your function with the form's ID and other parameters
       setupForm(formId, transformUploadFormData, submitDocumentFormData,handleDocumentUploadResponse,true);
+  });
+}
+
+export async function updateDocuments(formWrapper){
+  try {
+      let submoduleId = null;
+      var visaType = formWrapper.getAttribute('visatype');
+      var relocationCity = document.getElementById('account_relocation_city_germany').value;
+      if (relocationCity && visaType) {
+          submoduleId = getModuleId(visaType,relocationCity);
+          setCityNameInElements(relocationCity);
+          setQueryParam('submoduleId',submoduleId);
+          await renderDocuments(submoduleId);
+          const downloadAllButton = document.querySelector('[w-el="document_uploaded_downloadAll"]');
+          if (downloadAllButton){downloadAllButton.addEventListener('click', downloadAllFilesSubmodule)};
+      }
+  } catch (error){
+      logging.error({
+          message: 'Error while updating documents: ' + error.message,
+          eventName: 'render_exception',
+          extra: {}
+      });
+  }
+}
+
+/**
+* Gets a module ID based on the provided city name and visa type.
+* 
+* @param {string} cityName - The name of the city.
+* @param {string} visaType - The type of visa.
+* @returns {string|null} - The module ID if found, or null if not.
+*/
+function getModuleId(visaType, cityName="") {
+  // Define a map where the keys are a combination of city name and visa type
+  // and the values are corresponding module IDs.
+  const moduleMap = {
+      "residencePermit_Berlin": 10,
+      "residencePermit_Munich": 11,
+      "blueCard_Berlin": 12,
+      "blueCard_Munich": 13,
+      "freelance_Berlin" : 14,
+      "freelance_Munich": 15,
+      "familyReunification_Berlin": 18,
+      "familyReunification_Munich": 19,
+      "nationalDVisa_":20
+  };
+
+  // Construct the key from the function arguments
+  const key = `${visaType}_${cityName}`;
+
+  // Retrieve the module ID from the map
+  const moduleId = moduleMap[key];
+
+  // Return the module ID if found, or null otherwise
+  return moduleId || null;
+}
+
+/**
+* Sets the text of all elements with a specific query selector to a given city name.
+* 
+* @param {string} cityName - The city name to set as the text content.
+*/
+function setCityNameInElements(cityName) {
+  // Find all elements with the query selector '[w-el="cityName"]'
+  const elements = document.querySelectorAll('[w-el="cityName"]');
+
+  // Iterate over each element and set its text content to the provided city name
+  elements.forEach(element => {
+      element.textContent = cityName;
   });
 }

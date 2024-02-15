@@ -641,7 +641,8 @@ export function handleLoaderRemoval(element, loaderClass = '.skeleton-loader', p
     const loaderParent = element.closest(parentAttribute);
     if (loaderParent) {
         const loaders = loaderParent.querySelectorAll(loaderClass);
-        loaders.forEach(loader => setTimeout(() => loader.remove(), 500));
+        // loaders.forEach(loader => setTimeout(() => loader.remove(), 500));
+        loaders.forEach(loader => loader.remove());
 
     } else {
         // Log if the loader's parent element is not found
@@ -653,5 +654,8 @@ export function handleLoaderRemoval(element, loaderClass = '.skeleton-loader', p
     }
 }
 
-
+export function hasChildWithSelector(element, selector) {
+    const child = element.querySelector(selector);
+    return !!child; // !! converts the truthy/falsy value to boolean
+  }
 
