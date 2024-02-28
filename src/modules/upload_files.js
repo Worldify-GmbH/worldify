@@ -244,9 +244,11 @@ export async function updateDocuments(parentElementDocumentList,submodule_id) {
       parentElementDocumentList.appendChild(para);
       return;
     }
-
+    let num_docs = 10;
+  
     // 1. If documents exist, remove current documents
     if (hasChildWithSelector(parentElementDocumentList,".upload_form") || hasChildWithSelector(parentElementDocumentList,".download_component")){
+      num_docs = parentElementDocumentList.children.length;
       while (parentElementDocumentList.firstChild){
         parentElementDocumentList.removeChild(parentElementDocumentList.firstChild);
       }
@@ -254,7 +256,7 @@ export async function updateDocuments(parentElementDocumentList,submodule_id) {
     
     // 2. If no loaders exist, add loaders
     if (!hasChildWithSelector(parentElementDocumentList,".loader_form")){
-      for (let i = 0; i < 10; i++){
+      for (let i = 0; i < num_docs; i++){
         loaderElement(parentElementDocumentList);
       }
     }

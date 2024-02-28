@@ -23,7 +23,7 @@ const appRoutes = {
     '/app/modules/visa-modules/freelance-visa-module/prepare-freelance-visa-application': () => import('./modules/pages/app/Visa/upload_page.js').then(module => module.render()),
     '/app/modules/visa-modules/jobseeker-visa-module/prepare-jobseeker-visa-application': () => import('./modules/pages/app/Visa/upload_page.js').then(module => module.render()),
     '/app/modules/visa-modules/family-reunification-module/prepare-family-reunification-visa-application': () => import('./modules/pages/app/Visa/upload_page.js').then(module => module.render()),
-    '/app/modules/visa-modules/national-d-visa' : () => import('./modules/pages/app/Visa/upload_page.js').then(module => module.render()),
+    '/app/modules/visa-modules/national-d-visa' : () => import('./modules/pages/app/Visa/prepare_national_d_visa.js').then(module => module.render()),
     '/app/modules/health-insurance' : () => import('./modules/pages/app/Health_Insurance/health_insurance.js').then(module => module.render()),
     '/app/modules/health-insurance-modules/health-insurance-finder' : () => import('./modules/pages/app/Health_Insurance/health_insurance_finder.js').then(module => module.render())
 
