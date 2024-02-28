@@ -39,7 +39,7 @@ export async function render() {
             }
             const submoduleId = updateVisaRelocationCity();
             updateDocuments(parentElementDocumentList, submoduleId);
-            handleDocuments(parentElementDocumentList);
+            handleDocuments(parentElementDocumentList, submoduleId);
             const downloadAllButton = document.querySelector('[w-el="document_uploaded_downloadAll"]');
             if (downloadAllButton){downloadAllButton.addEventListener('click', function () {
                 downloadAllFilesSubmodule(submoduleId);

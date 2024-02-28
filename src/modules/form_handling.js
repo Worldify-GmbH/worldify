@@ -9,7 +9,7 @@ import { logging } from "./utils";
  * @param {Function} submitFormData - Function that handles the actual submission of the form data.
  * @param {Function|null} responseHandler - Optional function to handle the response after form submission.
  */
-export function setupForm(formId, onSubmitCustom, submitFormData, responseHandler = null,show_success=true) {
+export function setupForm(formId, submoduleId, listWrapper, onSubmitCustom, submitFormData, responseHandler = null,show_success=true) {
     const formElement = document.getElementById(formId);
     
     if (!formElement) {
@@ -38,9 +38,10 @@ export function setupForm(formId, onSubmitCustom, submitFormData, responseHandle
             handleFormResponse(formElement, response, show_success);
 
             if (responseHandler) {
-                await responseHandler(response);
+                await responseHandler(response, submoduleId, listWrapper);
             }
         } catch (error) {
+            console.log(error)
             logging.error({
                 message: "Error during form submission for form " + formId + ": " + error.message,
                 eventName: "form_submission_error",

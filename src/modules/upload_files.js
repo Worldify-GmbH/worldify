@@ -245,8 +245,6 @@ export async function updateDocuments(parentElementDocumentList,submodule_id) {
       return;
     }
 
-    
-
     // 1. If documents exist, remove current documents
     if (hasChildWithSelector(parentElementDocumentList,".upload_form") || hasChildWithSelector(parentElementDocumentList,".download_component")){
       while (parentElementDocumentList.firstChild){
@@ -286,10 +284,11 @@ export async function updateDocuments(parentElementDocumentList,submodule_id) {
     docList.forEach(item => parentElementDocumentList.insertAdjacentHTML("beforeend", item));
 
     // 5. Setup all forms
-    setupAllForms(parentElementDocumentList);
+    setupAllForms(parentElementDocumentList, submodule_id);
 
 
   } catch (error) {
+    console.error(error.message)
     logging.error({
       message: `Error while rendering documents: ${error.message}`,
       eventName: "renderDocuments_exception",
@@ -300,7 +299,7 @@ export async function updateDocuments(parentElementDocumentList,submodule_id) {
  * Attaches an event handler to the list of uploaded documents for handling various document-related actions.
  * This function delegates click events to the appropriate handler based on the action (download, delete, etc.).
  */
-export async function handleDocuments(documentsList) {
+export async function handleDocuments(documentsList, submoduleId) {
 
 
   // handle all click events on the document list 
@@ -328,7 +327,7 @@ export async function handleDocuments(documentsList) {
         } else if (
           parentLink.matches('[w-el="document_uploaded_deleteConfirm"]')
         ) {
-          await handleDeleteConfirm(parentLink);
+          await handleDeleteConfirm(parentLink, submoduleId,documentsList);
         }
       } catch (error) {
         await logging.error({
@@ -402,7 +401,7 @@ function handleDeleteReject(parentLink) {
  *
  * @param {Element} parentLink - The clicked link element that initiated the delete confirm action.
  */
-async function handleDeleteConfirm(parentLink) {
+async function handleDeleteConfirm(parentLink,submoduleId,documentsList) {
   const card = parentLink.closest(".download_component");
   const documentId = card.id;
   const wized_token = getCookie("wized_token");
@@ -419,11 +418,11 @@ async function handleDeleteConfirm(parentLink) {
 
   if (response.ok) {
     // Select the parent elements for document rendering
-    const parentElementDocumentList = document.querySelector(
-      '[w-el="document_list"]'
-    );
-    const submoduleId = updateVisaRelocationCity();
-    updateDocuments(parentElementDocumentList, submoduleId);
+    // const parentElementDocumentList = document.querySelector(
+    //   '[w-el="document_list"]'
+    // );
+    // const submoduleId = updateVisaRelocationCity();
+    updateDocuments(documentsList, submoduleId);
   } else {
     await logging.error({
       message: `Delete failed: ${response.statusText}`,
@@ -535,13 +534,13 @@ function transformUploadFormData(formData,event) {
 
   // Extract document and submodule IDs
   const documentId = parseInt(form.getAttribute("form-id"));
-  const submoduleId = parseInt(getQueryParam("submoduleId"));
+  // const submoduleId = parseInt(getQueryParam("submoduleId"));
 
   // Create formData and append relevant information
   const resultFormData = new FormData();
   resultFormData.append("document_title", documentTitle);
   resultFormData.append("document_id", documentId);
-  resultFormData.append("submodules_id", submoduleId);
+  // resultFormData.append("submodules_id", submoduleId);
   resultFormData.append("file", file);
 
   return resultFormData;
@@ -584,15 +583,18 @@ async function submitDocumentFormData(formData) {
   }
 }
 
-function handleDocumentUploadResponse(response){
+function handleDocumentUploadResponse(response, submoduleId, listWrapper){
 
   if (response.success) {
     // Select the parent elements for document rendering
-    const parentElementDocumentList = document.querySelector(
-      '[w-el="document_list"]'
-    );
-    const submoduleId = updateVisaRelocationCity();
-    updateDocuments(parentElementDocumentList, submoduleId);
+    // const parentElementDocumentList = document.querySelector(
+    //   '[w-el="document_list"]'
+    // );
+    // const submoduleId = updateVisaRelocationCity();
+    console.log(response)
+    console.log(submoduleId)
+    console.log(listWrapper)
+    updateDocuments(listWrapper, submoduleId);
   } else {
       logging.warning({
           message: "Document upload failed: " + response.message,
@@ -602,7 +604,7 @@ function handleDocumentUploadResponse(response){
   }
 }
 
-function setupAllForms(listWrapper) {
+function setupAllForms(listWrapper, submoduleId) {
 
   // Iterate over each form within the container
   listWrapper.querySelectorAll('.upload_component').forEach(form => {
@@ -610,7 +612,7 @@ function setupAllForms(listWrapper) {
       const formId = form.id;
 
       // Call your function with the form's ID and other parameters
-      setupForm(formId, transformUploadFormData, submitDocumentFormData,handleDocumentUploadResponse,true);
+      setupForm(formId, submoduleId, listWrapper, transformUploadFormData, submitDocumentFormData, handleDocumentUploadResponse, true);
   });
 }
 
@@ -629,7 +631,6 @@ export function updateVisaRelocationCity(){
       } else {
         return null;
       }
-
 }
 
 /**

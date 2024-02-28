@@ -46,7 +46,7 @@ export async function render () {
             const listWrapper = section.querySelector('.document_list-wrapper');
             const downloadAllButton = section.querySelector('.button');
             updateDocuments(listWrapper, element.submoduleId);
-            handleDocuments(listWrapper);
+            handleDocuments(listWrapper, element.submoduleId);
             if (downloadAllButton){downloadAllButton.addEventListener('click', function () {
                 downloadAllFilesSubmodule(element.submoduleId);
             })};
