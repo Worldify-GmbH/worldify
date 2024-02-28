@@ -54,11 +54,11 @@ async function setupTypeform(identifier, typeform_id,hidden) {
         opacity: 0,
         height : 600,
         onSubmit: async ({ formId, responseId }) =>  {
-            console.log(`Form ${formId} submitted, response id: ${responseId}`)
+            // console.log(`Form ${formId} submitted, response id: ${responseId}`)
             //const response = await get_tf_result(formId,responseId);
             //console.log(response);
             const updated_user = await submit_health_insurance(formId,responseId);
-            console.log(updated_user);
+            // console.log(updated_user);
           },
     }
 
@@ -75,7 +75,6 @@ export function render () {
 
         document.querySelector('[w-el="prefill_yes"]').addEventListener('click', async function() {
             // Code to handle "Yes" response
-            console.log("User consented to use external data.");
             slide1_externalData.classList.add('hide');
             slide2_reviewData.classList.remove('hide');
 
@@ -106,8 +105,6 @@ export function render () {
         document.querySelector('[w-el="proceedToQuiz"]').addEventListener('click', async function() {
             // Code to handle "No" response
             const response = await getAccountSettings(getCookie('wized_token'));
-            console.log(response)
-            console.log("User proceeds to quiz.");
             slide2_reviewData.classList.add('hide');
             typeform_quiz.classList.remove('hide');
             const hidden_data = {
@@ -125,7 +122,6 @@ export function render () {
         
         document.querySelector('[w-el="prefill_no"]').addEventListener('click', async function() {
             // Code to handle "No" response
-            console.log("User did not consent to use external data.");
             slide1_externalData.classList.add('hide');
             typeform_quiz.classList.remove('hide');
             await setupTypeform("typeform_quiz","siLiU31K",{});
