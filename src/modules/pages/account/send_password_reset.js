@@ -13,6 +13,8 @@ export function render() {
         // including transforming form data, submitting it, and handling the response.
         setupForm(
             'sendPasswordReset_form', // ID of the form to be setup
+            null,
+            null, 
             transformFormData,        // Function to transform the form data
             submitFormData,           // Function to submit the form data
             handleResponse,           // Function to handle the response from submission

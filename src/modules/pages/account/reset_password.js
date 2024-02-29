@@ -69,7 +69,7 @@ export async function render() {
     }
 
     // Setup reset password form
-    setupForm('resetPassword_form', transformFormData, resetPassword, handleResponse, false);
+    setupForm('resetPassword_form', null, null, transformFormData, resetPassword, handleResponse, false);
 }
 
 /**

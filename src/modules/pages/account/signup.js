@@ -10,7 +10,7 @@ import { logging } from "../../utils";
 export function render() {
 
     try {
-        setupForm('signup_form', transformSignupFormData, submitSignupFormData, handleSignupResponse,false);
+        setupForm('signup_form', null, null, transformSignupFormData, submitSignupFormData, handleSignupResponse,false);
     } catch (error) {
         logging.error({
             message: "Error initializing signup form: " + error.message,

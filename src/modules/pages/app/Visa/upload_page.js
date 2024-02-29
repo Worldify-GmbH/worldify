@@ -1,8 +1,8 @@
 //import { renderDocuments, handleUploadedDocuments, handleFileInputChange, handleUpload }
-import { getCookie, displayUser, redirectToLogin, resetPassword, emailReset, getAccountSettings, deleteCookie } from "../../../auth.js";
-import { autoSaveFunction, debounce, fillFieldsFromDatabase, setupForm } from "../../../form_handling";
-import { handleDocuments, handleFileInputChange, handleUpload, hideFilePreview, renderDocuments, updateDocuments, updateVisaRelocationCity } from "../../../upload_files.js";
-import { logging,downloadAllFilesSubmodule, setQueryParam, getQueryParam, reloadPage } from  "../../../utils.js";
+import { getCookie, getAccountSettings } from "../../../auth.js";
+import { autoSaveFunction, fillFieldsFromDatabase } from "../../../form_handling";
+import { handleDocuments, updateDocuments, updateVisaRelocationCity } from "../../../upload_files.js";
+import { logging,downloadAllFilesSubmodule } from  "../../../utils.js";
 
 /**
  * Renders the upload page for visa modules, including document lists and form settings.

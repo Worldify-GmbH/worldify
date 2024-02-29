@@ -31,8 +31,8 @@ export async function render() {
             return;
         }
 
-        const emailResponse = setupForm('account_change_mail', transformEmailFormData, emailReset,logoutAndRedirectEmail);      
-        const passwordResponse = setupForm('account_change_password', transformPasswordFormData, resetPassword,logoutAndRedirectPassword);
+        const emailResponse = setupForm('account_change_mail',null, null, transformEmailFormData, emailReset,logoutAndRedirectEmail);      
+        const passwordResponse = setupForm('account_change_password',null,null, transformPasswordFormData, resetPassword,logoutAndRedirectPassword);
 
     } catch (error) {
         logging.error({

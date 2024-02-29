@@ -12,7 +12,7 @@ export function render() {
     if (window.Webflow) {
         window.Webflow.push(() => {
             try {
-                setupForm('login_form', transformLoginFormData, submitLoginFormData, handleLoginResponse,false);
+                setupForm('login_form', null, null, transformLoginFormData, submitLoginFormData, handleLoginResponse,false);
             } catch (error) {
                 logging.error({
                     message: "Error initializing login form: " + error.message,
@@ -96,6 +96,7 @@ async function submitLoginFormData(inputFormData) {
  * @param {Object} response - The response object received from the form submission.
  */
 async function handleLoginResponse(response) {
+
     if (response.success) {
         setCookie(TOKEN_KEY, response.authToken);
         redirectToDashboard();
@@ -104,6 +105,7 @@ async function handleLoginResponse(response) {
             eventName: "user_login_success"
         });
     } else {
+        console.error(response.message)
         logging.warning({
             message: "Login failed: " + response.message,
             eventName: "user_login_failed",

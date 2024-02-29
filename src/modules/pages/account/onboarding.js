@@ -78,8 +78,8 @@ export async function render() {
     }
 
     // Setup onboarding forms
-    setupForm('onboarding_form_1', transformOnboardingFormData, submitOnboardingFormData, handleOnboardingResponse1, false);
-    setupForm('onboarding_form_2', transformOnboardingFormData, submitOnboardingFormData, handleOnboardingResponse2, false);
+    setupForm('onboarding_form_1', null, null, transformOnboardingFormData, submitOnboardingFormData, handleOnboardingResponse1, false);
+    setupForm('onboarding_form_2', null, null, transformOnboardingFormData, submitOnboardingFormData, handleOnboardingResponse2, false);
 }
 
 /**
