@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkworldify=self.webpackChunkworldify||[]).push([[896],{896:(e,n,t)=>{function d(){window.addEventListener("message",(function(e){(function(e){return e.data.event&&0===e.data.event.indexOf("calendly")})(e)&&console.log(e.data)}))}t.r(n),t.d(n,{render:()=>d})}}]);
+//# sourceMappingURL=896.bundle.1.0.15.js.map
