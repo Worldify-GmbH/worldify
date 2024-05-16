@@ -654,7 +654,9 @@ function getModuleId(visaType, cityName="") {
       "freelance_Munich": 15,
       "familyReunification_Berlin": 18,
       "familyReunification_Munich": 19,
-      "nationalDVisa_":20
+      "nationalDVisa_": 20,
+      "jobseeker_Berlin": 27,
+      "jobseeker_Munich": 28
   };
 
   // Construct the key from the function arguments

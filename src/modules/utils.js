@@ -2,6 +2,8 @@ import { getCookie } from "./auth";
 import { getDocuments } from "./upload_files";
 import * as JSZip from "jszip";
 import { TempusDominus } from '@eonasdan/tempus-dominus';
+import { createWidget } from '@typeform/embed';
+import '@typeform/embed/build/css/widget.css';
 
 
 
@@ -657,5 +659,29 @@ export function handleLoaderRemoval(element, loaderClass = '.skeleton-loader', p
 export function hasChildWithSelector(element, selector) {
     const child = element.querySelector(selector);
     return !!child; // !! converts the truthy/falsy value to boolean
-  }
+}
+
+export async function setupTypeform(identifier, typeform_id,hidden,submit_function) {
+
+    const query_selector = `[w-el="`+identifier+`"]`
+
+    const options = {
+        container: document.querySelector(query_selector), 
+        hidden: hidden,
+        hideHeaders: true,
+        hideFooter: true,
+        opacity: 0,
+        height : 600,
+        onSubmit: async ({ formId, responseId }) =>  {
+            // console.log(`Form ${formId} submitted, response id: ${responseId}`)
+            //const response = await get_tf_result(formId,responseId);
+            //console.log(response);
+            const updated_user = await submit_function(formId,responseId);
+            // console.log(updated_user);
+          },
+    }
+
+    createWidget(typeform_id, options)
+
+}
 
